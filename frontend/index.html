@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirQ WebGIS</title>
+    <meta name="description"
+        content="Integrated Web GIS for Air Quality Analysis: OpenAir, AERMOD & CALPUFF — PT AMMAN Mineral Nusa Tenggara Barat">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+
+<body>
+    <!-- Premium Loading Screen -->
+    <div id="loading-overlay">
+        <div class="loader-logo">
+            <i class="fas fa-globe-asia"></i>
+        </div>
+        <div class="loader-text">AirQ System Initializing...</div>
+        <div class="loader-bar">
+            <div class="loader-progress" id="loader-progress"></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-bar">
+            <div class="brand">
+                <i class="fas fa-wind brand-icon"></i>
+                <h1>AirQ <span class="brand-accent">WebGIS</span></h1>
+                <span class="brand-sub">Rizki Agustiawan Experiment</span>
+            </div>
+            <div class="top-bar-right">
+                <div class="status-badge live">
+                    <span class="dot pulse"></span> Live System
+                </div>
+                <div class="top-bar-time" id="current-time">--</div>
+            </div>
+        </header>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Sidebar: Module Tabs -->
+            <aside class="sidebar">
+                <nav class="module-tabs">
+                    <button class="module-tab active" data-module="monitoring" id="tab-monitoring">
+                        <i class="fas fa-broadcast-tower"></i>
+                        <span>Monitoring</span>
+                        <small>AQMS Live Data</small>
+                    </button>
+                    <button class="module-tab" data-module="openair" id="tab-openair">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>OpenAir</span>
+                        <small>Wind Rose & Analysis</small>
+                    </button>
+                    <button class="module-tab" data-module="aermod" id="tab-aermod">
+                        <i class="fas fa-crosshairs"></i>
+                        <span>AERMOD</span>
+                        <small>Near-field Dispersion</small>
+                    </button>
+                    <button class="module-tab" data-module="calpuff" id="tab-calpuff">
+                        <i class="fas fa-cloud"></i>
+                        <span>CALPUFF</span>
+                        <small>Long-range Transport</small>
+                    </button>
+                </nav>
+
+                <!-- Module Control Panels -->
+                <div class="module-panels">
+                    <!-- Monitoring Panel -->
+                    <div class="module-panel active" id="panel-monitoring">
+                        <h3 class="panel-title"><i class="fas fa-satellite-dish"></i> Monitoring Stations</h3>
+                        <ul id="station-list" class="station-list">
+                            <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...
+                            </div>
+                        </ul>
+                    </div>
+
+                    <!-- OpenAir Panel -->
+                    <div class="module-panel" id="panel-openair">
+                        <h3 class="panel-title"><i class="fas fa-chart-pie"></i> OpenAir Analysis</h3>
+                        <div class="control-group">
+                            <label>Analysis Type</label>
+                            <select id="openair-type" class="control-select">
+                                <option value="windrose">Wind Rose</option>
+                                <option value="polarplot">Polar Plot</option>
+                                <option value="timeseries">Time Series</option>
+                            </select>
+                        </div>
+                        <div class="control-group" id="openair-pollutant-group" style="display:none">
+                            <label>Pollutant</label>
+                            <select id="openair-pollutant" class="control-select">
+                                <option value="pm10">PM10</option>
+                                <option value="pm25">PM2.5</option>
+                                <option value="so2">SO₂</option>
+                                <option value="nox">NOx</option>
+                                <option value="co">CO</option>
+                            </select>
+                        </div>
+                        <button class="control-btn" id="openair-run"><i class="fas fa-play"></i> Run Analysis</button>
+                        <div id="openair-info" class="info-box">
+                            <p><strong>OpenAir R Module</strong></p>
+                            <p>Statistical analysis of air quality monitoring data with directional wind analysis and
+                                source characterization.</p>
+                        </div>
+                    </div>
+
+                    <!-- AERMOD Panel -->
+                    <div class="module-panel" id="panel-aermod">
+                        <h3 class="panel-title"><i class="fas fa-crosshairs"></i> AERMOD Parameters</h3>
+                        <div class="control-group">
+                            <label>Emission Source</label>
+                            <select id="aermod-source" class="control-select">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Wind Direction (°)</label>
+                            <input type="range" id="aermod-wind-dir" class="control-range" min="0" max="360" value="230"
+                                step="5">
+                            <span class="range-value" id="aermod-wind-dir-val">230°</span>
+                        </div>
+                        <div class="control-group">
+                            <label>Wind Speed (m/s)</label>
+                            <input type="range" id="aermod-wind-speed" class="control-range" min="0.5" max="15"
+                                value="3.5" step="0.5">
+                            <span class="range-value" id="aermod-wind-speed-val">3.5 m/s</span>
+                        </div>
+                        <div class="control-group">
+                            <label>Stability Class</label>
+                            <select id="aermod-stability" class="control-select">
+                                <option value="A">A — Very Unstable</option>
+                                <option value="B">B — Moderately Unstable</option>
+                                <option value="C" selected>C — Slightly Unstable</option>
+                                <option value="D">D — Neutral</option>
+                                <option value="E">E — Slightly Stable</option>
+                                <option value="F">F — Stable</option>
+                            </select>
+                        </div>
+                        <button class="control-btn" id="aermod-run"><i class="fas fa-play"></i> Run Dispersion</button>
+                        <div id="aermod-info" class="info-box">
+                            <p><strong>AERMOD Gaussian Plume</strong></p>
+                            <p>Near-field regulatory dispersion model (≤50km). Uses Pasquill-Gifford coefficients.</p>
+                        </div>
+                    </div>
+
+                    <!-- CALPUFF Panel -->
+                    <div class="module-panel" id="panel-calpuff">
+                        <h3 class="panel-title"><i class="fas fa-cloud"></i> CALPUFF Parameters</h3>
+                        <div class="control-group">
+                            <label>Simulation Duration (hours)</label>
+                            <input type="range" id="calpuff-duration" class="control-range" min="3" max="48" value="12"
+                                step="3">
+                            <span class="range-value" id="calpuff-duration-val">12 hrs</span>
+                        </div>
+                        <div class="control-group">
+                            <label>Pollutant</label>
+                            <select id="calpuff-pollutant" class="control-select">
+                                <option value="pm10">PM10</option>
+                                <option value="pm25">PM2.5</option>
+                                <option value="so2">SO₂</option>
+                                <option value="nox">NOx</option>
+                            </select>
+                        </div>
+                        <button class="control-btn" id="calpuff-run"><i class="fas fa-play"></i> Run Transport</button>
+                        <div id="calpuff-info" class="info-box">
+                            <p><strong>CALPUFF Lagrangian Puff</strong></p>
+                            <p>Long-range, non-steady-state transport from all sources. Simulates sea-land breeze
+                                patterns.</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Map & Visualization Area -->
+            <main class="main-content">
+                <div id="map" class="map-container"></div>
+
+                <!-- Floating Info Panels -->
+                <div class="floating-panel top-left" id="map-legend" style="display:none">
+                    <h4 id="legend-title">Legend</h4>
+                    <div id="legend-content"></div>
+                </div>
+
+                <!-- ISPU Panel -->
+                <div class="floating-panel top-right" id="ispu-panel" style="display:none">
+                    <h4 id="ispu-station-name">Station</h4>
+                    <div class="ispu-circle-mini" id="ispu-circle">
+                        <span class="ispu-val" id="ispu-val">--</span>
+                        <span class="ispu-cat" id="ispu-cat">N/A</span>
+                    </div>
+                    <p class="ispu-critical">Critical: <strong id="ispu-critical">--</strong></p>
+                    <p class="ispu-time" id="ispu-time">Updated: --</p>
+                </div>
+
+                <!-- Chart/Canvas overlay -->
+                <div class="floating-panel bottom-center" id="chart-panel" style="display:none">
+                    <div class="chart-panel-header">
+                        <h4 id="chart-title">Analysis</h4>
+                        <button class="close-btn" id="chart-close"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="analysisCanvas" width="600" height="400"></canvas>
+                        <canvas id="chartCanvas" width="600" height="300" style="display:none"></canvas>
+                    </div>
+                </div>
+
+                <!-- Source Info -->
+                <div class="floating-panel bottom-right" id="source-info-panel" style="display:none">
+                    <h4 id="source-info-title">Source Info</h4>
+                    <div id="source-info-content"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom JS -->
+    <script src="app.js?v=2"></script>
+</body>
+
+</html>

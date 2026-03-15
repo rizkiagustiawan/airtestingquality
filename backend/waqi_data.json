@@ -1,0 +1,875 @@
+﻿{
+    "status":  "success",
+    "count":  11,
+    "data":  [
+                 {
+                     "id":  "waqi-12441",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 },
+                 {
+                     "id":  "waqi-11276",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 },
+                 {
+                     "id":  "waqi-11428",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 },
+                 {
+                     "id":  "waqi-11270",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 },
+                 {
+                     "id":  "waqi-11312",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 },
+                 {
+                     "id":  "waqi-11293",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 },
+                 {
+                     "id":  "waqi-8190",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 },
+                 {
+                     "id":  "waqi-8686",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 },
+                 {
+                     "id":  "waqi-8687",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 },
+                 {
+                     "id":  "waqi-8191",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 },
+                 {
+                     "id":  "waqi-3758",
+                     "location":  "Shanghai (ä¸æµ·)",
+                     "city":  "Shanghai (ä¸æµ·)",
+                     "latitude":  31.2047372,
+                     "longitude":  121.4489017,
+                     "last_updated":  "2026-03-14T19:00:00+08:00",
+                     "measurements":  {
+                                          "pm25":  59.0,
+                                          "pm10":  31.0,
+                                          "co":  3.7,
+                                          "no2":  11.5,
+                                          "so2":  4.1,
+                                          "o3":  53.2
+                                      },
+                     "ispu":  {
+                                  "value":  105,
+                                  "category":  "Tidak Sehat",
+                                  "color":  "#ffff00",
+                                  "critical_parameter":  "pm25"
+                              },
+                     "compliance":  [
+                                        {
+                                            "parameter":  "pm25",
+                                            "concentration":  59.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  false,
+                                            "indonesia_limit":  55,
+                                            "who_compliant":  false,
+                                            "who_limit":  15
+                                        },
+                                        {
+                                            "parameter":  "pm10",
+                                            "concentration":  31.0,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  45
+                                        },
+                                        {
+                                            "parameter":  "co",
+                                            "concentration":  3.7,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  30000,
+                                            "indonesia_note":  "Compared against 1h limit"
+                                        },
+                                        {
+                                            "parameter":  "no2",
+                                            "concentration":  11.5,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  65,
+                                            "who_compliant":  true,
+                                            "who_limit":  25
+                                        },
+                                        {
+                                            "parameter":  "so2",
+                                            "concentration":  4.1,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  75,
+                                            "who_compliant":  true,
+                                            "who_limit":  40
+                                        },
+                                        {
+                                            "parameter":  "o3",
+                                            "concentration":  53.2,
+                                            "timeframe":  "24h",
+                                            "indonesia_compliant":  true,
+                                            "indonesia_limit":  150,
+                                            "indonesia_note":  "Compared against 1h limit",
+                                            "who_compliant":  true,
+                                            "who_limit":  100,
+                                            "who_note":  "Compared against 8h limit"
+                                        }
+                                    ]
+                 }
+             ]
+}
