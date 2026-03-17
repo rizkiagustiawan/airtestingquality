@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 
 def _as_bool(value: str | None, default: bool = False) -> bool:
@@ -20,6 +21,13 @@ class Settings:
     CORS_ALLOW_CREDENTIALS = _as_bool(os.getenv("CORS_ALLOW_CREDENTIALS"), default=False)
     SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-production")
     DATA_SOURCE = os.getenv("DATA_SOURCE", "auto")
+    RATE_LIMIT_ENABLED = _as_bool(os.getenv("RATE_LIMIT_ENABLED"), default=True)
+    RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "120"))
+    ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "")
+    DATA_STALE_MINUTES = int(os.getenv("DATA_STALE_MINUTES", "30"))
+    RUNTIME_DIR = Path(os.getenv("RUNTIME_DIR", str(Path(__file__).resolve().parent / "runtime")))
+    HISTORY_FILE = RUNTIME_DIR / "station_history.json"
+    AUDIT_LOG_FILE = RUNTIME_DIR / "audit_log.jsonl"
 
 
 settings = Settings()

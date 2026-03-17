@@ -1,6 +1,7 @@
+from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -17,10 +18,19 @@ from met_data import (
     get_timeseries_data,
     get_wind_rose_data,
 )
+from governance import (
+    append_audit_event,
+    load_station_history,
+    read_recent_audit_events,
+    save_station_history,
+)
 from qa_qc import run_qaqc
+from rate_limit import SimpleRateLimitMiddleware
 from settings import settings
 
 _PREVIOUS_MEASUREMENTS_BY_STATION: dict[str, dict] = {}
+_LATEST_DASHBOARD_META: dict = {}
+_METRICS = {"dashboard_requests_total": 0}
 
 
 def _compliance_timeframe_for(parameter: str) -> str:
@@ -44,9 +54,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(
+    SimpleRateLimitMiddleware,
+    max_requests_per_minute=settings.RATE_LIMIT_PER_MINUTE,
+    enabled=settings.RATE_LIMIT_ENABLED,
+)
 
 frontend_dir = Path(__file__).parent.parent / "frontend"
 frontend_dir.mkdir(parents=True, exist_ok=True)
+
+
+@app.on_event("startup")
+def load_runtime_history() -> None:
+    _PREVIOUS_MEASUREMENTS_BY_STATION.update(load_station_history(settings.HISTORY_FILE))
 
 
 @app.get("/api/health")
@@ -56,6 +76,33 @@ def health() -> dict:
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
     }
+
+
+def _to_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+def _is_stale(timestamp: str | None, stale_minutes: int) -> bool:
+    dt = _to_datetime(timestamp)
+    if dt is None:
+        return True
+    now = datetime.now(timezone.utc)
+    age_seconds = (now - dt).total_seconds()
+    return age_seconds > stale_minutes * 60
+
+
+def _require_admin_key(request: Request) -> None:
+    required = settings.ADMIN_API_KEY.strip()
+    if not required:
+        return
+    provided = request.headers.get("x-api-key", "").strip()
+    if provided != required:
+        raise HTTPException(status_code=401, detail="Invalid or missing admin API key")
 
 
 @app.get("/api/dashboard-data")
@@ -88,6 +135,35 @@ def get_dashboard_data(
         dashboard_response.append(station)
         _PREVIOUS_MEASUREMENTS_BY_STATION[station_id] = dict(metrics)
 
+    try:
+        save_station_history(settings.HISTORY_FILE, _PREVIOUS_MEASUREMENTS_BY_STATION)
+    except Exception:
+        pass
+    _METRICS["dashboard_requests_total"] += 1
+    _LATEST_DASHBOARD_META.update(
+        {
+            "last_refresh": datetime.utcnow().isoformat() + "Z",
+            "source": provenance["selected_source"],
+            "fallback_used": provenance["fallback_used"],
+            "count": len(dashboard_response),
+            "qaqc_summary": qaqc_summary,
+        }
+    )
+    try:
+        append_audit_event(
+            settings.AUDIT_LOG_FILE,
+            "dashboard_data_refresh",
+            {
+                "source": provenance["selected_source"],
+                "fallback_used": provenance["fallback_used"],
+                "stations": len(dashboard_response),
+                "valid_rate_pct": qaqc_summary.get("overall_valid_rate_pct"),
+                "flags": qaqc_summary.get("total_flags"),
+            },
+        )
+    except Exception:
+        pass
+
     return {
         "status": "success",
         "count": len(dashboard_response),
@@ -96,6 +172,49 @@ def get_dashboard_data(
         "qaqc_summary": qaqc_summary,
         "data": dashboard_response,
     }
+
+
+@app.get("/api/data-quality")
+def api_data_quality() -> dict:
+    stale_minutes = settings.DATA_STALE_MINUTES
+    per_station = []
+    stale_count = 0
+    for station_id, measurements in _PREVIOUS_MEASUREMENTS_BY_STATION.items():
+        _ = measurements  # avoid lint warning for future expansion
+        per_station.append(
+            {
+                "station_id": station_id,
+                "last_updated": _LATEST_DASHBOARD_META.get("last_refresh"),
+                "is_stale": _is_stale(_LATEST_DASHBOARD_META.get("last_refresh"), stale_minutes),
+            }
+        )
+    stale_count = sum(1 for item in per_station if item["is_stale"])
+    station_count = len(per_station)
+    availability_pct = round(
+        100.0 * (station_count - stale_count) / station_count, 2
+    ) if station_count else 0.0
+    return {
+        "status": "success",
+        "last_refresh": _LATEST_DASHBOARD_META.get("last_refresh"),
+        "stale_threshold_minutes": stale_minutes,
+        "stations": station_count,
+        "stale_stations": stale_count,
+        "availability_pct": availability_pct,
+        "qaqc_summary": _LATEST_DASHBOARD_META.get("qaqc_summary", {}),
+        "per_station": per_station,
+    }
+
+
+@app.get("/api/metrics")
+def api_metrics() -> dict:
+    return {"status": "success", "metrics": _METRICS}
+
+
+@app.get("/api/audit-events")
+def api_audit_events(request: Request, limit: int = Query(50, ge=1, le=500)) -> dict:
+    _require_admin_key(request)
+    events = read_recent_audit_events(settings.AUDIT_LOG_FILE, limit=limit)
+    return {"status": "success", "count": len(events), "events": events}
 
 
 @app.get("/api/emission-sources")

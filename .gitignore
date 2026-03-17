@@ -12,6 +12,7 @@ env/
 *.db
 backend/.mypy_cache/
 backend/__pycache__/
+backend/runtime/
 .coverage
 coverage.xml
 

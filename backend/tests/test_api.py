@@ -52,3 +52,20 @@ def test_calpuff_accepts_no2_pollutant():
     assert response.status_code == 200
     payload = response.json()
     assert payload["pollutant"] == "no2"
+
+
+def test_data_quality_endpoint_shape():
+    client.get("/api/dashboard-data?source=synthetic")
+    response = client.get("/api/data-quality")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "success"
+    assert "availability_pct" in payload
+
+
+def test_metrics_endpoint():
+    response = client.get("/api/metrics")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "success"
+    assert "metrics" in payload

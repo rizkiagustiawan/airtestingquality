@@ -22,6 +22,11 @@ Production-minded air quality platform for environmental monitoring, compliance 
   - missing/non-numeric checks
   - spike suspicion checks
   - output split into `measurements_raw` and cleaned `measurements`
+- Operational governance controls:
+  - append-only audit events (`/api/audit-events`)
+  - data quality SLA summary (`/api/data-quality`)
+  - simple runtime metrics (`/api/metrics`)
+  - configurable rate limiting
 - OpenAir-style analytics:
   - Wind rose
   - Polar plot
@@ -32,6 +37,40 @@ Production-minded air quality platform for environmental monitoring, compliance 
 - Backend: FastAPI, NumPy/SciPy, SQLAlchemy/PostGIS-ready models.
 - Frontend: HTML/CSS/JavaScript with map + chart modules.
 - Infra: Docker Compose with PostGIS, Redis, optional Celery worker.
+
+## Architecture Diagram
+```mermaid
+flowchart LR
+    U["User (Browser)"] --> FE["Frontend UI (Leaflet + Chart.js)\nfrontend/index.html + app.js"]
+
+    FE -->|GET /api/health| API["FastAPI Backend\nbackend/main.py"]
+    FE -->|GET /api/dashboard-data?source=auto| API
+    FE -->|GET /api/openair/*| API
+    FE -->|GET /api/aermod/dispersion| API
+    FE -->|GET /api/calpuff/plume| API
+    FE -->|GET /api/emission-sources| API
+
+    API --> DF["Data Fetcher\nbackend/data_fetcher.py\nsources: synthetic | waqi | auto"]
+    DF --> WAQI["WAQI API (optional, token-based)"]
+    DF --> SYN["Synthetic NTB Generator"]
+
+    API --> QA["QA/QC Engine\nbackend/qa_qc.py\nmissing, range, spike checks"]
+    API --> ISPU["ISPU Calculator\nbackend/ispu_calculator.py"]
+    API --> CMP["Compliance Checker\nbackend/compliance.py\nPP 22/2021 + WHO 2021"]
+    API --> OA["OpenAir-style Analytics\nbackend/met_data.py"]
+    API --> AER["AERMOD-style Simulator\nbackend/aermod_simulator.py"]
+    API --> CAL["CALPUFF-style Simulator\nbackend/calpuff_simulator.py"]
+    API --> SRC["Emission Source Registry\nbackend/emission_sources.py"]
+
+    API --> RESP["JSON Response\n(raw + cleaned + qa_qc + ispu + compliance)"]
+    RESP --> FE
+
+    subgraph Deploy["Vercel Deployment"]
+      FE
+      API
+      VCFG["vercel.json\nroutes static + /api/*"]
+    end
+```
 
 ## Scientific and Compliance Boundaries
 This repository is an engineering portfolio prototype.
@@ -96,6 +135,9 @@ These pipelines enforce baseline code quality and security checks on every chang
 
 ## API Health Check
 - `GET /api/health`
+- `GET /api/data-quality`
+- `GET /api/metrics`
+- `GET /api/audit-events` (optionally protected via `x-api-key` when `ADMIN_API_KEY` is set)
 
 ## Portfolio Notes for Recruiters
 - Prioritizes practical environmental analytics with clear system boundaries.
