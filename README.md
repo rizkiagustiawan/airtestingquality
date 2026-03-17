@@ -56,6 +56,39 @@ Optional real-data mode:
 4. CALPUFF-style long-range transport view.
 5. Metrics, alerts, audit trail, retention, and backup endpoints.
 
+## Visual Walkthrough
+The screenshots below show the dashboard, analytical modules, and operational features included in this portfolio project.
+
+### 1. Hero Dashboard
+![Hero dashboard placeholder](./docs/images/dashboard-hero.png)
+
+### 2. Monitoring Detail
+![Monitoring detail placeholder](./docs/images/monitoring-detail.png)
+
+### 3. OpenAir Wind Rose
+![OpenAir wind rose placeholder](./docs/images/openair-windrose.png)
+
+### 4. OpenAir Polar Plot
+![OpenAir polar plot placeholder](./docs/images/openair-polarplot.png)
+
+### 5. AERMOD Plume
+![AERMOD plume placeholder](./docs/images/aermod-plume.png)
+
+### 6. CALPUFF Plume
+![CALPUFF plume placeholder](./docs/images/calpuff-plume.png)
+
+### 7. Metrics Endpoint
+![Metrics endpoint placeholder](./docs/images/metrics-endpoint.png)
+
+### 8. Grafana Overview
+![Grafana overview placeholder](./docs/images/grafana-overview.png)
+
+### 9. Telegram Alert
+![Telegram alert placeholder](./docs/images/telegram-alert.png)
+
+### 10. Test Suite
+![Test suite placeholder](./docs/images/test-suite.png)
+
 ## Why This Project Stands Out
 - Domain-focused engineering: ISPU computation, ambient standard checks, and dispersion mapping in one product.
 - Full-stack implementation: FastAPI backend + spatial front-end visualization.
