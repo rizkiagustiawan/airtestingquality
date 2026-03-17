@@ -13,21 +13,41 @@ Production-minded air quality platform for environmental monitoring, compliance 
 - Deployment paths: local Windows run, Docker stack, or Vercel quick deployment.
 - Engineering posture: tested, documented, secret-scanned, and explicit about scientific and regulatory boundaries.
 
-## Try It Fast
-- Public-safe default: the frontend loads the deterministic `synthetic` dataset first, so anyone can try the app without a WAQI token.
-- Fastest Windows path:
-  1. Open PowerShell in the repo root.
-  2. Run `cd backend`
-  3. Run `python -m venv .venv`
-  4. Run `.\.venv\Scripts\python.exe -m pip install -r requirements.txt`
-  5. Go back to the repo root and run `run_dashboard.bat`
-- Manual backend start:
-  - `cd backend`
-  - `.\.venv\Scripts\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8000`
-- Optional real-data mode:
-  - add `WAQI_TOKEN` to `.env`
-  - open the UI with `?source=waqi` or set `DATA_SOURCE=waqi`
-- `.env` is auto-loaded by the backend for local runs and `run_dashboard.bat`
+## Before You Start
+- Recommended OS for the easiest first run: Windows with Python 3.11+.
+- The backend auto-loads `.env` for local runs and `run_dashboard.bat`.
+- The default demo mode is `synthetic`, so you do not need a WAQI token to try the app.
+
+## Choose a Run Mode
+- `Local demo`: best option for portfolio review, screenshots, and first-time testing.
+- `Docker stack`: best option if you want Prometheus, Grafana, Alertmanager, Redis, and PostGIS together.
+- `Vercel`: best option for a lightweight public demo of the dashboard and API.
+
+## Fastest Local Demo
+1. Open PowerShell in the repo root.
+2. Create a local env file:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+3. Create the backend virtual environment and install dependencies:
+   ```powershell
+   cd backend
+   python -m venv .venv
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   ```
+4. Go back to the repo root and start the app:
+   ```powershell
+   cd ..
+   .\run_dashboard.bat
+   ```
+5. Open:
+   - [http://127.0.0.1:8000/app/](http://127.0.0.1:8000/app/)
+   - [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
+   - [http://127.0.0.1:8000/metrics](http://127.0.0.1:8000/metrics)
+
+Optional real-data mode:
+- add `WAQI_TOKEN` to `.env`
+- open the UI with `?source=waqi` or set `DATA_SOURCE=waqi`
 
 ## What You Can Demo In 5 Minutes
 1. Monitoring dashboard with ISPU and per-station air quality summaries.
@@ -131,7 +151,9 @@ See:
 - `docs/COMPLIANCE_SCOPE.md`
 - `docs/SECURITY_AND_PRIVACY.md`
 
-## Quick Start (Local)
+## Detailed Local Setup
+If the `Fastest Local Demo` section already works for you, you can skip this section.
+
 1. Create env file:
    - Copy `.env.example` to `.env`
    - For the easiest portfolio demo, set `DATA_SOURCE=synthetic`
@@ -159,6 +181,11 @@ See:
 5. Validate key endpoints:
    - [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
    - [http://127.0.0.1:8000/metrics](http://127.0.0.1:8000/metrics)
+6. Run tests:
+   ```powershell
+   cd backend
+   .\.venv\Scripts\python.exe -m pytest -q
+   ```
 
 ## Docker
 ```bash
@@ -171,6 +198,7 @@ Monitoring stack included in Docker:
 - Alertmanager: `http://localhost:9093`
 - Grafana auto-loads `monitoring/grafana/dashboards/airq-overview.json`
 - Docker Compose automatically connects the app container to PostGIS even though the sample `.env` stays SQLite-first for local runs.
+- Before using Docker beyond local testing, replace placeholder secrets in `.env`.
 
 ## Deploy to Vercel (Quick Test)
 1. Push repository to GitHub.
@@ -186,11 +214,11 @@ Notes:
 - `vercel.json` serves `frontend/` as static site and routes `/api/*` to FastAPI serverless entrypoint `api/index.py`.
 - Frontend API calls use same-origin paths, so no API URL rewrite is required.
 
-## Testing
-```bash
-cd backend
-pytest -q
-```
+## Operational Notes
+- `AUTH_ENABLED=false` is acceptable for local/private demo use.
+- If you expose the app publicly, set `AUTH_ENABLED=true` and replace all placeholder credentials and secrets.
+- `ADMIN_API_KEY` can add another layer of protection for sensitive operational endpoints.
+- `ALERT_DISPATCH_KEY` is optional and is mainly useful for non-private callers to the internal dispatch endpoint.
 
 ## Public Repo Expectations
 - No production secrets should ever be committed. Use `.env` locally and repository or platform secrets in deployment.
