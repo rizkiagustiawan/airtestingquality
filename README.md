@@ -65,6 +65,19 @@ See:
 docker compose --env-file .env up --build
 ```
 
+## Deploy to Vercel (Quick Test)
+1. Push repository to GitHub.
+2. Import project in Vercel from that GitHub repo.
+3. Set environment variables in Vercel Project Settings:
+   - `DATA_SOURCE=synthetic` (recommended for first test)
+   - `APP_NAME`
+   - `APP_VERSION`
+4. Deploy.
+
+Notes:
+- `vercel.json` serves `frontend/` as static site and routes `/api/*` to FastAPI serverless entrypoint `api/index.py`.
+- Frontend API calls use same-origin paths, so no API URL rewrite is required.
+
 ## Testing
 ```bash
 cd backend
