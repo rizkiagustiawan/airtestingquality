@@ -34,6 +34,7 @@ from auth import (
     LoginResponse,
     auth_posture_issues,
     create_access_token,
+    is_trusted_request_host,
     is_valid_user,
     require_roles,
     user_role,
@@ -348,12 +349,15 @@ def api_dispatch_alerts(
 
 
 @app.post("/api/alerts/dispatch/internal")
-def api_dispatch_alerts_internal(dispatch_key: str = Query("")) -> dict:
-    required = settings.ALERT_DISPATCH_KEY
+def api_dispatch_alerts_internal(request: Request, dispatch_key: str = Query("")) -> dict:
+    required = settings.ALERT_DISPATCH_KEY.strip()
+    request_host = request.client.host if request.client else None
     # Internal dispatch is intended for private network callers such as Alertmanager.
-    # If a key is configured, direct API users should prefer /api/alerts/dispatch.
-    if required and dispatch_key and dispatch_key != required:
-        raise HTTPException(status_code=401, detail="Invalid alert dispatch key")
+    # When a dispatch key is configured, external callers must provide it.
+    if required and not (
+        dispatch_key == required or is_trusted_request_host(request_host)
+    ):
+        raise HTTPException(status_code=401, detail="Invalid or missing alert dispatch key")
     payload = api_alerts()
     outcomes = send_alerts(payload["alerts"])
     return {

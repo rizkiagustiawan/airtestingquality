@@ -1,9 +1,10 @@
+import ipaddress
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from uuid import uuid4
 
 import jwt
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
@@ -28,6 +29,19 @@ class AuthContext(BaseModel):
 
 
 bearer_scheme = HTTPBearer(auto_error=False)
+
+
+def is_trusted_request_host(host: str | None) -> bool:
+    if not host:
+        return False
+    normalized = host.strip().lower()
+    if normalized in {"127.0.0.1", "::1", "localhost", "testclient"}:
+        return True
+    try:
+        ip = ipaddress.ip_address(normalized)
+    except ValueError:
+        return False
+    return ip.is_loopback or ip.is_private
 
 
 def is_valid_user(username: str, password: str) -> bool:
@@ -109,9 +123,13 @@ def create_access_token(username: str, role: str) -> tuple[str, int]:
 
 def get_auth_context(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+    request: Request | None = None,
 ) -> AuthContext:
     if not settings.AUTH_ENABLED:
-        return AuthContext(username="local-dev", role="admin")
+        request_host = request.client.host if request and request.client else None
+        if request is None or is_trusted_request_host(request_host):
+            return AuthContext(username="local-dev", role="admin")
+        return AuthContext(username="anonymous", role="anonymous")
 
     if credentials is None:
         raise HTTPException(status_code=401, detail="Missing bearer token")

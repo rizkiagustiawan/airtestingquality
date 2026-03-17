@@ -27,6 +27,7 @@ Production-minded air quality platform for environmental monitoring, compliance 
 - Optional real-data mode:
   - add `WAQI_TOKEN` to `.env`
   - open the UI with `?source=waqi` or set `DATA_SOURCE=waqi`
+- `.env` is auto-loaded by the backend for local runs and `run_dashboard.bat`
 
 ## What You Can Demo In 5 Minutes
 1. Monitoring dashboard with ISPU and per-station air quality summaries.
@@ -136,6 +137,7 @@ See:
    - For the easiest portfolio demo, set `DATA_SOURCE=synthetic`
    - The sample env defaults to SQLite for local-first setup
    - Replace placeholder secrets before enabling auth or public deployment
+   - For public deployment, set `AUTH_ENABLED=true`
 2. Install backend dependencies:
    ```powershell
    cd backend
@@ -168,6 +170,7 @@ Monitoring stack included in Docker:
 - Grafana: `http://localhost:3000` using `GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD` from `.env`
 - Alertmanager: `http://localhost:9093`
 - Grafana auto-loads `monitoring/grafana/dashboards/airq-overview.json`
+- Docker Compose automatically connects the app container to PostGIS even though the sample `.env` stays SQLite-first for local runs.
 
 ## Deploy to Vercel (Quick Test)
 1. Push repository to GitHub.
@@ -176,6 +179,7 @@ Monitoring stack included in Docker:
    - `DATA_SOURCE=synthetic` (recommended for first test)
    - `APP_NAME`
    - `APP_VERSION`
+   - `AUTH_ENABLED=true` if you want protected operational endpoints available
 4. Deploy.
 
 Notes:
@@ -192,6 +196,7 @@ pytest -q
 - No production secrets should ever be committed. Use `.env` locally and repository or platform secrets in deployment.
 - The default local path is intentionally easy to run for reviewers and recruiters.
 - This repo is optimized for reproducible demo behavior first, then optional real-data experimentation second.
+- When auth is disabled, protected operational endpoints are intended for local/private use only.
 
 ## CI/CD and Security Automation
 - GitHub Actions `CI` workflow:
