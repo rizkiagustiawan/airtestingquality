@@ -17,6 +17,7 @@ from met_data import (
     get_timeseries_data,
     get_wind_rose_data,
 )
+from qa_qc import run_qaqc
 from settings import settings
 
 
@@ -44,9 +45,15 @@ def health() -> dict:
 
 
 @app.get("/api/dashboard-data")
-def get_dashboard_data() -> dict:
+def get_dashboard_data(
+    source: str = Query(settings.DATA_SOURCE, pattern="^(auto|synthetic|waqi)$")
+) -> dict:
     """Fetches telemetry, calculates ISPU, and evaluates compliance limits."""
-    stations_data = fetch_indonesia_air_quality()
+    try:
+        stations_data, provenance = fetch_indonesia_air_quality(source=source)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    stations_data, qaqc_summary = run_qaqc(stations_data)
     dashboard_response = []
 
     for station in stations_data:
@@ -62,7 +69,14 @@ def get_dashboard_data() -> dict:
         station["compliance"] = compliance_results
         dashboard_response.append(station)
 
-    return {"status": "success", "count": len(dashboard_response), "data": dashboard_response}
+    return {
+        "status": "success",
+        "count": len(dashboard_response),
+        "source": provenance["selected_source"],
+        "fallback_used": provenance["fallback_used"],
+        "qaqc_summary": qaqc_summary,
+        "data": dashboard_response,
+    }
 
 
 @app.get("/api/emission-sources")

@@ -12,6 +12,8 @@ env/
 *.db
 backend/.mypy_cache/
 backend/__pycache__/
+.coverage
+coverage.xml
 
 # Node / Frontend (if applicable later)
 node_modules/

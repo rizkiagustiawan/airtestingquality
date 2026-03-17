@@ -19,6 +19,7 @@ class Settings:
     CORS_ORIGINS = get_cors_origins()
     CORS_ALLOW_CREDENTIALS = _as_bool(os.getenv("CORS_ALLOW_CREDENTIALS"), default=False)
     SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-production")
+    DATA_SOURCE = os.getenv("DATA_SOURCE", "auto")
 
 
 settings = Settings()

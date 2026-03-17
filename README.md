@@ -13,7 +13,15 @@ Production-minded air quality platform for environmental monitoring, compliance 
 - Compliance checks against:
   - Indonesia PP No. 22/2021 (ambient limits used in this prototype).
   - WHO 2021 Air Quality Guidelines (reference comparison layer).
-- Monitoring dashboard data feed for NTB station scenarios.
+- Monitoring dashboard data feed with selectable source:
+  - `synthetic` (local deterministic demo dataset)
+  - `waqi` (real-time WAQI snapshots, token-based)
+  - `auto` (attempt real data, fallback to synthetic)
+- QA/QC pipeline per station:
+  - range checks
+  - missing/non-numeric checks
+  - spike suspicion checks
+  - output split into `measurements_raw` and cleaned `measurements`
 - OpenAir-style analytics:
   - Wind rose
   - Polar plot
@@ -62,6 +70,16 @@ docker compose --env-file .env up --build
 cd backend
 pytest -q
 ```
+
+## CI/CD and Security Automation
+- GitHub Actions `CI` workflow:
+  - `ruff` lint check
+  - `pytest` with coverage gate (>=70%)
+  - `pip-audit` vulnerability check
+- GitHub Actions `Secret Scan` workflow:
+  - `gitleaks` on push/pull request
+
+These pipelines enforce baseline code quality and security checks on every change.
 
 ## API Health Check
 - `GET /api/health`
