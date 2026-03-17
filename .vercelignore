@@ -1,3 +1,4 @@
 backend/__pycache__/
 backend/.mypy_cache/
 frontend_react/
+pyproject.toml
