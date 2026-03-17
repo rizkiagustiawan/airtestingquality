@@ -30,6 +30,8 @@ class Settings:
     HISTORY_FILE = RUNTIME_DIR / "station_history.json"
     AUDIT_LOG_FILE = RUNTIME_DIR / "audit_log.jsonl"
     HISTORY_DB_FILE = RUNTIME_DIR / "history.db"
+    BACKUP_DIR = RUNTIME_DIR / "backups"
+    RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "30"))
     AUTH_ENABLED = _as_bool(os.getenv("AUTH_ENABLED"), default=False)
     JWT_SECRET = os.getenv("JWT_SECRET", os.getenv("SECRET_KEY", "change-me-in-production"))
     JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
@@ -38,6 +40,17 @@ class Settings:
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin-change-me")
     VIEWER_USERNAME = os.getenv("VIEWER_USERNAME", "viewer")
     VIEWER_PASSWORD = os.getenv("VIEWER_PASSWORD", "viewer-change-me")
+    ALERT_CHANNELS = [c.strip().lower() for c in os.getenv("ALERT_CHANNELS", "").split(",") if c.strip()]
+    SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
+    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+    SMTP_HOST = os.getenv("SMTP_HOST", "")
+    SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USERNAME = os.getenv("SMTP_USERNAME", "")
+    SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+    SMTP_FROM = os.getenv("SMTP_FROM", "")
+    ALERT_EMAIL_TO = os.getenv("ALERT_EMAIL_TO", "")
+    ALERT_DISPATCH_KEY = os.getenv("ALERT_DISPATCH_KEY", "")
 
 
 settings = Settings()

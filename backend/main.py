@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -26,6 +27,7 @@ from governance import (
     read_recent_audit_events,
     save_station_history,
 )
+from alert_notifier import send_alerts
 from auth import (
     LoginRequest,
     LoginResponse,
@@ -34,7 +36,21 @@ from auth import (
     require_roles,
     user_role,
 )
-from history_store import get_station_history, init_history_db, record_dashboard_snapshot
+from history_store import (
+    apply_retention_policy,
+    backup_history_db,
+    get_station_history,
+    init_history_db,
+    record_dashboard_snapshot,
+    restore_history_db,
+)
+from observability import (
+    API_REQUESTS_TOTAL,
+    DASHBOARD_REFRESH_TOTAL,
+    QAQC_VALID_RATE_PCT,
+    STALE_STATIONS,
+    render_metrics,
+)
 from qa_qc import run_qaqc
 from rate_limit import SimpleRateLimitMiddleware
 from settings import settings
@@ -90,6 +106,15 @@ app.add_middleware(
 
 frontend_dir = Path(__file__).parent.parent / "frontend"
 frontend_dir.mkdir(parents=True, exist_ok=True)
+
+
+@app.middleware("http")
+async def collect_request_metrics(request: Request, call_next):
+    response = await call_next(request)
+    API_REQUESTS_TOTAL.labels(
+        path=request.url.path, method=request.method, status_code=str(response.status_code)
+    ).inc()
+    return response
 
 
 @app.get("/api/health")
@@ -174,6 +199,10 @@ def get_dashboard_data(
     except Exception:
         pass
     _METRICS["dashboard_requests_total"] += 1
+    DASHBOARD_REFRESH_TOTAL.labels(
+        source=provenance["selected_source"], fallback_used=str(provenance["fallback_used"]).lower()
+    ).inc()
+    QAQC_VALID_RATE_PCT.set(float(qaqc_summary.get("overall_valid_rate_pct", 0.0)))
     _LATEST_DASHBOARD_META.update(
         {
             "last_refresh": datetime.utcnow().isoformat() + "Z",
@@ -235,6 +264,7 @@ def api_data_quality() -> dict:
             }
         )
     stale_count = sum(1 for item in per_station if item["is_stale"])
+    STALE_STATIONS.set(stale_count)
     station_count = len(per_station)
     availability_pct = round(
         100.0 * (station_count - stale_count) / station_count, 2
@@ -286,9 +316,42 @@ def api_alerts() -> dict:
     return {"status": "success", "count": len(alerts), "alerts": alerts}
 
 
+@app.post("/api/alerts/dispatch")
+def api_dispatch_alerts(
+    _ctx: Annotated[object, Depends(require_roles("admin"))] = None,
+) -> dict:
+    payload = api_alerts()
+    outcomes = send_alerts(payload["alerts"])
+    return {
+        "status": "success",
+        "alerts_count": payload["count"],
+        "channels": outcomes,
+    }
+
+
+@app.post("/api/alerts/dispatch/internal")
+def api_dispatch_alerts_internal(dispatch_key: str = Query("")) -> dict:
+    required = settings.ALERT_DISPATCH_KEY
+    if required and dispatch_key != required:
+        raise HTTPException(status_code=401, detail="Invalid alert dispatch key")
+    payload = api_alerts()
+    outcomes = send_alerts(payload["alerts"])
+    return {
+        "status": "success",
+        "alerts_count": payload["count"],
+        "channels": outcomes,
+    }
+
+
 @app.get("/api/metrics")
 def api_metrics() -> dict:
     return {"status": "success", "metrics": _METRICS}
+
+
+@app.get("/metrics")
+def prometheus_metrics() -> Response:
+    body, content_type = render_metrics()
+    return Response(content=body, media_type=content_type)
 
 
 @app.get("/api/audit-events")
@@ -324,6 +387,57 @@ def api_station_history(
         "pollutant": pollutant,
         "rows": rows,
     }
+
+
+@app.post("/api/history/retention/run")
+def api_run_retention(
+    keep_days: int = Query(settings.RETENTION_DAYS, ge=1, le=3650),
+    _ctx: Annotated[object, Depends(require_roles("admin"))] = None,
+) -> dict:
+    result = apply_retention_policy(settings.HISTORY_DB_FILE, keep_days=keep_days)
+    try:
+        append_audit_event(
+            settings.AUDIT_LOG_FILE,
+            "retention_run",
+            {"keep_days": keep_days, **result},
+        )
+    except Exception:
+        pass
+    return {"status": "success", "retention": result}
+
+
+@app.post("/api/history/backup")
+def api_backup_history(
+    _ctx: Annotated[object, Depends(require_roles("admin"))] = None,
+) -> dict:
+    backup_path = backup_history_db(settings.HISTORY_DB_FILE, settings.BACKUP_DIR)
+    try:
+        append_audit_event(
+            settings.AUDIT_LOG_FILE,
+            "history_backup",
+            {"backup_file": str(backup_path)},
+        )
+    except Exception:
+        pass
+    return {"status": "success", "backup_file": str(backup_path)}
+
+
+@app.post("/api/history/restore")
+def api_restore_history(
+    backup_file: str = Query(..., min_length=1),
+    _ctx: Annotated[object, Depends(require_roles("admin"))] = None,
+) -> dict:
+    path = Path(backup_file)
+    restore_history_db(settings.HISTORY_DB_FILE, path)
+    try:
+        append_audit_event(
+            settings.AUDIT_LOG_FILE,
+            "history_restore",
+            {"backup_file": str(path)},
+        )
+    except Exception:
+        pass
+    return {"status": "success", "restored_from": str(path)}
 
 
 @app.get("/api/emission-sources")

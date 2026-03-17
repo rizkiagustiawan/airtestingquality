@@ -26,8 +26,11 @@ Production-minded air quality platform for environmental monitoring, compliance 
   - append-only audit events (`/api/audit-events`)
   - data quality SLA summary (`/api/data-quality`)
   - simple runtime metrics (`/api/metrics`)
+  - Prometheus scrape endpoint (`/metrics`)
   - historical measurement query (`/api/history/station`)
   - operational alerts (`/api/alerts`)
+  - automatic retention execution (`/api/history/retention/run`)
+  - history backup/restore endpoints (`/api/history/backup`, `/api/history/restore`)
   - configurable rate limiting
   - optional JWT auth + RBAC (`admin` / `viewer`)
 - OpenAir-style analytics:
@@ -107,6 +110,11 @@ See:
 docker compose --env-file .env up --build
 ```
 
+Monitoring stack included in Docker:
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000` (default `admin/admin`)
+- Alertmanager: `http://localhost:9093`
+
 ## Deploy to Vercel (Quick Test)
 1. Push repository to GitHub.
 2. Import project in Vercel from that GitHub repo.
@@ -140,10 +148,15 @@ These pipelines enforce baseline code quality and security checks on every chang
 - `GET /api/health`
 - `GET /api/data-quality`
 - `GET /api/metrics`
+- `GET /metrics` (Prometheus format)
 - `GET /api/audit-events` (optionally protected via `x-api-key` when `ADMIN_API_KEY` is set)
 - `GET /api/alerts`
 - `GET /api/history/station?station_id=<id>&pollutant=pm25`
 - `POST /api/auth/token` (when `AUTH_ENABLED=true`)
+- `POST /api/alerts/dispatch`
+- `POST /api/history/retention/run?keep_days=30`
+- `POST /api/history/backup`
+- `POST /api/history/restore?backup_file=<path>`
 
 ## Portfolio Notes for Recruiters
 - Prioritizes practical environmental analytics with clear system boundaries.

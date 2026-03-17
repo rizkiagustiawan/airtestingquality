@@ -1,0 +1,20 @@
+groups:
+  - name: airq-alerts
+    rules:
+      - alert: AirQDataStale
+        expr: airq_stale_stations > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AirQ station data stale"
+          description: "One or more stations are stale for over threshold duration."
+
+      - alert: AirQLowValidRate
+        expr: airq_qaqc_valid_rate_pct < 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AirQ low QA/QC valid rate"
+          description: "QA/QC valid rate dropped below 85%."

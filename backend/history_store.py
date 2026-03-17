@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -148,3 +149,57 @@ def get_station_history(
         return [dict(row) for row in rows]
     finally:
         conn.close()
+
+
+def apply_retention_policy(db_path: Path, keep_days: int) -> dict:
+    init_history_db(db_path)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, keep_days))
+    cutoff_iso = cutoff.isoformat().replace("+00:00", "Z")
+    conn = sqlite3.connect(str(db_path))
+    try:
+        cur1 = conn.execute(
+            "DELETE FROM station_measurements WHERE timestamp < ?",
+            (cutoff_iso,),
+        )
+        cur2 = conn.execute(
+            "DELETE FROM refresh_events WHERE timestamp < ?",
+            (cutoff_iso,),
+        )
+        conn.commit()
+        return {
+            "cutoff": cutoff_iso,
+            "deleted_station_measurements": cur1.rowcount if cur1.rowcount is not None else 0,
+            "deleted_refresh_events": cur2.rowcount if cur2.rowcount is not None else 0,
+        }
+    finally:
+        conn.close()
+
+
+def backup_history_db(db_path: Path, backup_dir: Path) -> Path:
+    init_history_db(db_path)
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    backup_path = backup_dir / f"history_backup_{timestamp}.sqlite3"
+
+    src = sqlite3.connect(str(db_path))
+    dst = sqlite3.connect(str(backup_path))
+    try:
+        src.backup(dst)
+    finally:
+        dst.close()
+        src.close()
+    return backup_path
+
+
+def restore_history_db(db_path: Path, backup_file: Path) -> None:
+    if not backup_file.exists():
+        raise FileNotFoundError(f"Backup file not found: {backup_file}")
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    src = sqlite3.connect(str(backup_file))
+    dst = sqlite3.connect(str(db_path))
+    try:
+        src.backup(dst)
+    finally:
+        dst.close()
+        src.close()
+    init_history_db(db_path)

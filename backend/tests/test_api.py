@@ -87,3 +87,18 @@ def test_history_endpoint_shape():
     payload = response.json()
     assert payload["status"] == "success"
     assert payload["station_id"] == station_id
+
+
+def test_prometheus_metrics_endpoint():
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert "airq_api_requests_total" in response.text
+
+
+def test_retention_and_backup_endpoints():
+    retention = client.post("/api/history/retention/run?keep_days=1")
+    assert retention.status_code == 200
+    backup = client.post("/api/history/backup")
+    assert backup.status_code == 200
+    payload = backup.json()
+    assert payload["status"] == "success"
