@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -24,6 +25,15 @@ from governance import (
     read_recent_audit_events,
     save_station_history,
 )
+from auth import (
+    LoginRequest,
+    LoginResponse,
+    create_access_token,
+    is_valid_user,
+    require_roles,
+    user_role,
+)
+from history_store import get_station_history, init_history_db, record_dashboard_snapshot
 from qa_qc import run_qaqc
 from rate_limit import SimpleRateLimitMiddleware
 from settings import settings
@@ -66,7 +76,14 @@ frontend_dir.mkdir(parents=True, exist_ok=True)
 
 @app.on_event("startup")
 def load_runtime_history() -> None:
-    _PREVIOUS_MEASUREMENTS_BY_STATION.update(load_station_history(settings.HISTORY_FILE))
+    try:
+        _PREVIOUS_MEASUREMENTS_BY_STATION.update(load_station_history(settings.HISTORY_FILE))
+    except Exception:
+        pass
+    try:
+        init_history_db(settings.HISTORY_DB_FILE)
+    except Exception:
+        pass
 
 
 @app.get("/api/health")
@@ -76,6 +93,17 @@ def health() -> dict:
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
     }
+
+
+@app.post("/api/auth/token", response_model=LoginResponse)
+def issue_token(payload: LoginRequest) -> LoginResponse:
+    if not settings.AUTH_ENABLED:
+        raise HTTPException(status_code=400, detail="Auth is disabled by configuration")
+    if not is_valid_user(payload.username, payload.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    role = user_role(payload.username)
+    token, expires_in = create_access_token(payload.username, role)
+    return LoginResponse(access_token=token, expires_in_seconds=expires_in, role=role)
 
 
 def _to_datetime(value: str | None) -> datetime | None:
@@ -164,6 +192,18 @@ def get_dashboard_data(
     except Exception:
         pass
 
+    try:
+        record_dashboard_snapshot(
+            settings.HISTORY_DB_FILE,
+            _LATEST_DASHBOARD_META["last_refresh"],
+            provenance["selected_source"],
+            provenance["fallback_used"],
+            dashboard_response,
+            qaqc_summary,
+        )
+    except Exception:
+        pass
+
     return {
         "status": "success",
         "count": len(dashboard_response),
@@ -205,16 +245,79 @@ def api_data_quality() -> dict:
     }
 
 
+@app.get("/api/alerts")
+def api_alerts() -> dict:
+    alerts = []
+    last_refresh = _LATEST_DASHBOARD_META.get("last_refresh")
+    if _LATEST_DASHBOARD_META.get("fallback_used"):
+        alerts.append(
+            {
+                "severity": "warning",
+                "code": "SOURCE_FALLBACK",
+                "message": "Primary source unavailable. Synthetic fallback is active.",
+            }
+        )
+    if _is_stale(last_refresh, settings.DATA_STALE_MINUTES):
+        alerts.append(
+            {
+                "severity": "critical",
+                "code": "DATA_STALE",
+                "message": f"No fresh refresh within {settings.DATA_STALE_MINUTES} minutes.",
+            }
+        )
+    valid_rate = float(_LATEST_DASHBOARD_META.get("qaqc_summary", {}).get("overall_valid_rate_pct", 0.0))
+    if last_refresh and valid_rate < settings.MIN_ACCEPTABLE_VALID_RATE_PCT:
+        alerts.append(
+            {
+                "severity": "warning",
+                "code": "LOW_VALID_RATE",
+                "message": (
+                    f"QA/QC valid rate {valid_rate}% below threshold "
+                    f"{settings.MIN_ACCEPTABLE_VALID_RATE_PCT}%."
+                ),
+            }
+        )
+    return {"status": "success", "count": len(alerts), "alerts": alerts}
+
+
 @app.get("/api/metrics")
 def api_metrics() -> dict:
     return {"status": "success", "metrics": _METRICS}
 
 
 @app.get("/api/audit-events")
-def api_audit_events(request: Request, limit: int = Query(50, ge=1, le=500)) -> dict:
+def api_audit_events(
+    request: Request,
+    limit: int = Query(50, ge=1, le=500),
+    _ctx: Annotated[object, Depends(require_roles("admin"))] = None,
+) -> dict:
     _require_admin_key(request)
     events = read_recent_audit_events(settings.AUDIT_LOG_FILE, limit=limit)
     return {"status": "success", "count": len(events), "events": events}
+
+
+@app.get("/api/history/station")
+def api_station_history(
+    station_id: str = Query(..., min_length=1),
+    pollutant: str = Query(..., pattern="^(pm10|pm25|so2|no2|co|o3)$"),
+    cleaned_only: bool = Query(True),
+    limit: int = Query(100, ge=1, le=2000),
+    _ctx: Annotated[object, Depends(require_roles("admin", "viewer"))] = None,
+) -> dict:
+    rows = get_station_history(
+        settings.HISTORY_DB_FILE,
+        station_id=station_id,
+        pollutant=pollutant,
+        cleaned_only=cleaned_only,
+        limit=limit,
+    )
+    return {
+        "status": "success",
+        "count": len(rows),
+        "station_id": station_id,
+        "pollutant": pollutant,
+        "rows": rows,
+    }
 
 
 @app.get("/api/emission-sources")

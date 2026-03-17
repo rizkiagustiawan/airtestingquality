@@ -69,3 +69,21 @@ def test_metrics_endpoint():
     payload = response.json()
     assert payload["status"] == "success"
     assert "metrics" in payload
+
+
+def test_alerts_endpoint_shape():
+    response = client.get("/api/alerts")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "success"
+    assert "alerts" in payload
+
+
+def test_history_endpoint_shape():
+    dash = client.get("/api/dashboard-data?source=synthetic").json()
+    station_id = dash["data"][0]["id"]
+    response = client.get(f"/api/history/station?station_id={station_id}&pollutant=pm25")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "success"
+    assert payload["station_id"] == station_id

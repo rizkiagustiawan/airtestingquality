@@ -26,7 +26,10 @@ Production-minded air quality platform for environmental monitoring, compliance 
   - append-only audit events (`/api/audit-events`)
   - data quality SLA summary (`/api/data-quality`)
   - simple runtime metrics (`/api/metrics`)
+  - historical measurement query (`/api/history/station`)
+  - operational alerts (`/api/alerts`)
   - configurable rate limiting
+  - optional JWT auth + RBAC (`admin` / `viewer`)
 - OpenAir-style analytics:
   - Wind rose
   - Polar plot
@@ -138,6 +141,9 @@ These pipelines enforce baseline code quality and security checks on every chang
 - `GET /api/data-quality`
 - `GET /api/metrics`
 - `GET /api/audit-events` (optionally protected via `x-api-key` when `ADMIN_API_KEY` is set)
+- `GET /api/alerts`
+- `GET /api/history/station?station_id=<id>&pollutant=pm25`
+- `POST /api/auth/token` (when `AUTH_ENABLED=true`)
 
 ## Portfolio Notes for Recruiters
 - Prioritizes practical environmental analytics with clear system boundaries.
