@@ -71,23 +71,17 @@ The screenshots below show the dashboard, analytical modules, and operational fe
 ### 4. OpenAir Polar Plot
 ![OpenAir polar plot placeholder](./docs/images/openair-polarplot.png)
 
-### 5. AERMOD Plume
+### 5. OpenAir Time Series
+![OpenAir time series placeholder](./docs/images/openair-timeseries.png)
+
+### 6. AERMOD Dispersion
+![AERMOD dispersion placeholder](./docs/images/aermod-dispersion.png)
+
+### 7. AERMOD Plume
 ![AERMOD plume placeholder](./docs/images/aermod-plume.png)
 
-### 6. CALPUFF Plume
-![CALPUFF plume placeholder](./docs/images/calpuff-plume.png)
-
-### 7. Metrics Endpoint
-![Metrics endpoint placeholder](./docs/images/metrics-endpoint.png)
-
-### 8. Grafana Overview
-![Grafana overview placeholder](./docs/images/grafana-overview.png)
-
-### 9. Telegram Alert
+### 8. Telegram Alert
 ![Telegram alert placeholder](./docs/images/telegram-alert.png)
-
-### 10. Test Suite
-![Test suite placeholder](./docs/images/test-suite.png)
 
 ## Why This Project Stands Out
 - Domain-focused engineering: ISPU computation, ambient standard checks, and dispersion mapping in one product.
