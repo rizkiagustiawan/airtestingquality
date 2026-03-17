@@ -1,6 +1,17 @@
 # Air Quality Web GIS (Environmental Engineering Portfolio)
 
+[![CI](https://github.com/rizkiagustiawan/airtestingquality/actions/workflows/ci.yml/badge.svg)](https://github.com/rizkiagustiawan/airtestingquality/actions/workflows/ci.yml)
+[![Secret Scan](https://github.com/rizkiagustiawan/airtestingquality/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/rizkiagustiawan/airtestingquality/actions/workflows/secret-scan.yml)
+[![Vercel](https://img.shields.io/badge/deploy-Vercel-black?logo=vercel)](https://vercel.com/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+
 Production-minded air quality platform for environmental monitoring, compliance screening, and atmospheric dispersion visualization.
+
+## At a Glance
+- Purpose: showcase an environmental engineering workflow that combines monitoring, screening compliance, QA/QC, geospatial visualization, and operational governance.
+- Best first experience: run locally with the built-in deterministic `synthetic` dataset.
+- Deployment paths: local Windows run, Docker stack, or Vercel quick deployment.
+- Engineering posture: tested, documented, secret-scanned, and explicit about scientific and regulatory boundaries.
 
 ## Try It Fast
 - Public-safe default: the frontend loads the deterministic `synthetic` dataset first, so anyone can try the app without a WAQI token.
@@ -16,6 +27,13 @@ Production-minded air quality platform for environmental monitoring, compliance 
 - Optional real-data mode:
   - add `WAQI_TOKEN` to `.env`
   - open the UI with `?source=waqi` or set `DATA_SOURCE=waqi`
+
+## What You Can Demo In 5 Minutes
+1. Monitoring dashboard with ISPU and per-station air quality summaries.
+2. OpenAir-style wind rose, polar plot, and pollutant time series.
+3. AERMOD-style near-field plume visualization.
+4. CALPUFF-style long-range transport view.
+5. Metrics, alerts, audit trail, retention, and backup endpoints.
 
 ## Why This Project Stands Out
 - Domain-focused engineering: ISPU computation, ambient standard checks, and dispersion mapping in one product.
@@ -58,6 +76,14 @@ Production-minded air quality platform for environmental monitoring, compliance 
 - Backend: FastAPI, NumPy/SciPy, SQLAlchemy/PostGIS-ready models.
 - Frontend: HTML/CSS/JavaScript with map + chart modules.
 - Infra: Docker Compose with PostGIS, Redis, optional Celery worker.
+
+## Repository Structure
+- `backend/`: FastAPI app, scientific logic, QA/QC, auth, governance, and history store.
+- `frontend/`: static dashboard UI with Leaflet and Chart.js.
+- `api/`: Vercel serverless entrypoint.
+- `monitoring/`: Prometheus, Alertmanager, and Grafana provisioning.
+- `docs/`: scientific, compliance, privacy, auth rotation, and runbook notes.
+- `.github/workflows/`: CI, dependency audit, and secret scanning.
 
 ## Architecture Diagram
 ```mermaid
@@ -162,6 +188,11 @@ cd backend
 pytest -q
 ```
 
+## Public Repo Expectations
+- No production secrets should ever be committed. Use `.env` locally and repository or platform secrets in deployment.
+- The default local path is intentionally easy to run for reviewers and recruiters.
+- This repo is optimized for reproducible demo behavior first, then optional real-data experimentation second.
+
 ## CI/CD and Security Automation
 - GitHub Actions `CI` workflow:
   - `ruff` lint check
@@ -176,6 +207,12 @@ These pipelines enforce baseline code quality and security checks on every chang
 Operational policy docs:
 - `docs/AUTH_AND_SECRET_ROTATION_POLICY.md`
 - `docs/BACKUP_AND_RETENTION_RUNBOOK.md`
+
+## Contributing and Security
+- Contribution guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- Security reporting: [SECURITY.md](./SECURITY.md)
+- Changelog: [CHANGELOG.md](./CHANGELOG.md)
+- License: [LICENSE](./LICENSE)
 
 ## API Health Check
 - `GET /api/health`
