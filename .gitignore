@@ -19,6 +19,7 @@ coverage.xml
 # Node / Frontend (if applicable later)
 node_modules/
 .npm/
+frontend_react/
 
 # IDE
 .vscode/

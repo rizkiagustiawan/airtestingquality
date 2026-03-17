@@ -71,6 +71,7 @@ services:
       - "6379:6379"
 
   celery_worker:
+    profiles: ["async"]
     build: .
     container_name: airq_celery_worker
     command: python -m celery -A backend.worker.celery_app worker --loglevel=info
@@ -114,8 +115,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro

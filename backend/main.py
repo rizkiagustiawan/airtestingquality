@@ -1,5 +1,6 @@
-from datetime import datetime, timezone
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+import logging
 from pathlib import Path
 from typing import Annotated
 
@@ -59,6 +60,7 @@ from settings import settings
 _PREVIOUS_MEASUREMENTS_BY_STATION: dict[str, dict] = {}
 _LATEST_DASHBOARD_META: dict = {}
 _METRICS = {"dashboard_requests_total": 0}
+logger = logging.getLogger(__name__)
 
 
 def _compliance_timeframe_for(parameter: str) -> str:
@@ -77,11 +79,11 @@ def _init_runtime_state() -> None:
     try:
         _PREVIOUS_MEASUREMENTS_BY_STATION.update(load_station_history(settings.HISTORY_FILE))
     except Exception:
-        pass
+        logger.exception("Failed to load station history cache")
     try:
         init_history_db(settings.HISTORY_DB_FILE)
     except Exception:
-        pass
+        logger.exception("Failed to initialize history database")
 
 
 @asynccontextmanager
@@ -198,7 +200,7 @@ def get_dashboard_data(
     try:
         save_station_history(settings.HISTORY_FILE, _PREVIOUS_MEASUREMENTS_BY_STATION)
     except Exception:
-        pass
+        logger.exception("Failed to persist station history cache")
     _METRICS["dashboard_requests_total"] += 1
     DASHBOARD_REFRESH_TOTAL.labels(
         source=provenance["selected_source"], fallback_used=str(provenance["fallback_used"]).lower()
@@ -226,7 +228,7 @@ def get_dashboard_data(
             },
         )
     except Exception:
-        pass
+        logger.exception("Failed to append audit event for dashboard refresh")
 
     try:
         record_dashboard_snapshot(
@@ -238,7 +240,7 @@ def get_dashboard_data(
             qaqc_summary,
         )
     except Exception:
-        pass
+        logger.exception("Failed to record dashboard snapshot in history store")
 
     return {
         "status": "success",
@@ -348,7 +350,9 @@ def api_dispatch_alerts(
 @app.post("/api/alerts/dispatch/internal")
 def api_dispatch_alerts_internal(dispatch_key: str = Query("")) -> dict:
     required = settings.ALERT_DISPATCH_KEY
-    if required and dispatch_key != required:
+    # Internal dispatch is intended for private network callers such as Alertmanager.
+    # If a key is configured, direct API users should prefer /api/alerts/dispatch.
+    if required and dispatch_key and dispatch_key != required:
         raise HTTPException(status_code=401, detail="Invalid alert dispatch key")
     payload = api_alerts()
     outcomes = send_alerts(payload["alerts"])
@@ -418,7 +422,7 @@ def api_run_retention(
             {"keep_days": keep_days, **result},
         )
     except Exception:
-        pass
+        logger.exception("Failed to append retention audit event")
     return {"status": "success", "retention": result}
 
 
@@ -434,7 +438,7 @@ def api_backup_history(
             {"backup_file": str(backup_path)},
         )
     except Exception:
-        pass
+        logger.exception("Failed to append backup audit event")
     return {"status": "success", "backup_file": str(backup_path)}
 
 
@@ -452,7 +456,7 @@ def api_restore_history(
             {"backup_file": str(path)},
         )
     except Exception:
-        pass
+        logger.exception("Failed to append restore audit event")
     return {"status": "success", "restored_from": str(path)}
 
 
