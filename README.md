@@ -114,6 +114,7 @@ Monitoring stack included in Docker:
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3000` (default `admin/admin`)
 - Alertmanager: `http://localhost:9093`
+- Grafana auto-loads `monitoring/grafana/dashboards/airq-overview.json`
 
 ## Deploy to Vercel (Quick Test)
 1. Push repository to GitHub.
@@ -138,11 +139,16 @@ pytest -q
 - GitHub Actions `CI` workflow:
   - `ruff` lint check
   - `pytest` with coverage gate (>=70%)
+  - backup/restore verification drill
   - `pip-audit` vulnerability check
 - GitHub Actions `Secret Scan` workflow:
   - `gitleaks` on push/pull request
 
 These pipelines enforce baseline code quality and security checks on every change.
+
+Operational policy docs:
+- `docs/AUTH_AND_SECRET_ROTATION_POLICY.md`
+- `docs/BACKUP_AND_RETENTION_RUNBOOK.md`
 
 ## API Health Check
 - `GET /api/health`
@@ -151,6 +157,7 @@ These pipelines enforce baseline code quality and security checks on every chang
 - `GET /metrics` (Prometheus format)
 - `GET /api/audit-events` (optionally protected via `x-api-key` when `ADMIN_API_KEY` is set)
 - `GET /api/alerts`
+- `GET /api/auth/posture`
 - `GET /api/history/station?station_id=<id>&pollutant=pm25`
 - `POST /api/auth/token` (when `AUTH_ENABLED=true`)
 - `POST /api/alerts/dispatch`

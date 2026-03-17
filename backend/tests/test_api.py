@@ -102,3 +102,11 @@ def test_retention_and_backup_endpoints():
     assert backup.status_code == 200
     payload = backup.json()
     assert payload["status"] == "success"
+
+
+def test_auth_posture_endpoint_shape():
+    response = client.get("/api/auth/posture")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "success"
+    assert "configured_kids" in payload

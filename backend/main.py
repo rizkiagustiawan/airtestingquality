@@ -31,6 +31,7 @@ from alert_notifier import send_alerts
 from auth import (
     LoginRequest,
     LoginResponse,
+    auth_posture_issues,
     create_access_token,
     is_valid_user,
     require_roles,
@@ -284,6 +285,7 @@ def api_data_quality() -> dict:
 @app.get("/api/alerts")
 def api_alerts() -> dict:
     alerts = []
+    alerts.extend(auth_posture_issues())
     last_refresh = _LATEST_DASHBOARD_META.get("last_refresh")
     if _LATEST_DASHBOARD_META.get("fallback_used"):
         alerts.append(
@@ -314,6 +316,20 @@ def api_alerts() -> dict:
             }
         )
     return {"status": "success", "count": len(alerts), "alerts": alerts}
+
+
+@app.get("/api/auth/posture")
+def api_auth_posture(
+    _ctx: Annotated[object, Depends(require_roles("admin"))] = None,
+) -> dict:
+    issues = auth_posture_issues()
+    return {
+        "status": "success",
+        "auth_enabled": settings.AUTH_ENABLED,
+        "active_kid": settings.JWT_ACTIVE_KID,
+        "configured_kids": sorted(settings.JWT_SECRETS.keys()),
+        "issues": issues,
+    }
 
 
 @app.post("/api/alerts/dispatch")

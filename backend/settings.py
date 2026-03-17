@@ -14,6 +14,26 @@ def get_cors_origins() -> list[str]:
     return origins or ["http://127.0.0.1:8000"]
 
 
+def get_jwt_secrets() -> dict[str, str]:
+    raw = os.getenv("JWT_SECRETS", "").strip()
+    secrets: dict[str, str] = {}
+    if raw:
+        for item in raw.split(","):
+            part = item.strip()
+            if not part or ":" not in part:
+                continue
+            kid, secret = part.split(":", 1)
+            kid = kid.strip()
+            secret = secret.strip()
+            if kid and secret:
+                secrets[kid] = secret
+    default_secret = os.getenv("JWT_SECRET", os.getenv("SECRET_KEY", "change-me-in-production"))
+    active_kid = os.getenv("JWT_ACTIVE_KID", "primary")
+    if default_secret and active_kid not in secrets:
+        secrets[active_kid] = default_secret
+    return secrets
+
+
 class Settings:
     APP_NAME = os.getenv("APP_NAME", "Air Quality Web GIS")
     APP_VERSION = os.getenv("APP_VERSION", "2.1.0")
@@ -34,8 +54,12 @@ class Settings:
     RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "30"))
     AUTH_ENABLED = _as_bool(os.getenv("AUTH_ENABLED"), default=False)
     JWT_SECRET = os.getenv("JWT_SECRET", os.getenv("SECRET_KEY", "change-me-in-production"))
+    JWT_ACTIVE_KID = os.getenv("JWT_ACTIVE_KID", "primary")
+    JWT_SECRETS = get_jwt_secrets()
     JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
     JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
+    JWT_ISSUER = os.getenv("JWT_ISSUER", "airq-webgis")
+    JWT_AUDIENCE = os.getenv("JWT_AUDIENCE", "airq-api")
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin-change-me")
     VIEWER_USERNAME = os.getenv("VIEWER_USERNAME", "viewer")

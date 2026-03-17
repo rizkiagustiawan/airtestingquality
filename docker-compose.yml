@@ -22,7 +22,11 @@ services:
       - RETENTION_DAYS=${RETENTION_DAYS}
       - AUTH_ENABLED=${AUTH_ENABLED}
       - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRETS=${JWT_SECRETS}
+      - JWT_ACTIVE_KID=${JWT_ACTIVE_KID}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
       - JWT_EXPIRE_MINUTES=${JWT_EXPIRE_MINUTES}
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -114,6 +118,8 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
 

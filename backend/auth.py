@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
+from uuid import uuid4
 
 import jwt
 from fastapi import Depends, HTTPException
@@ -37,6 +38,44 @@ def is_valid_user(username: str, password: str) -> bool:
     return False
 
 
+def auth_posture_issues() -> list[dict]:
+    issues = []
+    if settings.AUTH_ENABLED:
+        if settings.ADMIN_PASSWORD == "admin-change-me":
+            issues.append(
+                {
+                    "severity": "critical",
+                    "code": "DEFAULT_ADMIN_PASSWORD",
+                    "message": "Admin password is still set to the default placeholder.",
+                }
+            )
+        if settings.VIEWER_PASSWORD == "viewer-change-me":
+            issues.append(
+                {
+                    "severity": "warning",
+                    "code": "DEFAULT_VIEWER_PASSWORD",
+                    "message": "Viewer password is still set to the default placeholder.",
+                }
+            )
+        if len(settings.JWT_SECRETS) < 2:
+            issues.append(
+                {
+                    "severity": "warning",
+                    "code": "NO_SECRET_ROTATION_RING",
+                    "message": "JWT secret rotation ring has fewer than two active secrets.",
+                }
+            )
+        if settings.JWT_SECRET == "change-me-in-production" and not settings.JWT_SECRETS:
+            issues.append(
+                {
+                    "severity": "critical",
+                    "code": "DEFAULT_JWT_SECRET",
+                    "message": "JWT secret is still using the insecure default value.",
+                }
+            )
+    return issues
+
+
 def user_role(username: str) -> str:
     if username == settings.ADMIN_USERNAME:
         return "admin"
@@ -45,9 +84,26 @@ def user_role(username: str) -> str:
 
 def create_access_token(username: str, role: str) -> tuple[str, int]:
     expires_in = settings.JWT_EXPIRE_MINUTES * 60
-    exp = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
-    payload = {"sub": username, "role": role, "exp": exp}
-    token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+    now = datetime.now(timezone.utc)
+    exp = now + timedelta(seconds=expires_in)
+    active_kid = settings.JWT_ACTIVE_KID
+    secret = settings.JWT_SECRETS.get(active_kid, settings.JWT_SECRET)
+    payload = {
+        "sub": username,
+        "role": role,
+        "iss": settings.JWT_ISSUER,
+        "aud": settings.JWT_AUDIENCE,
+        "iat": now,
+        "nbf": now,
+        "exp": exp,
+        "jti": str(uuid4()),
+    }
+    token = jwt.encode(
+        payload,
+        secret,
+        algorithm=settings.JWT_ALGORITHM,
+        headers={"kid": active_kid},
+    )
     return token, expires_in
 
 
@@ -60,10 +116,31 @@ def get_auth_context(
     if credentials is None:
         raise HTTPException(status_code=401, detail="Missing bearer token")
     token = credentials.credentials
-    try:
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
-    except Exception as exc:
-        raise HTTPException(status_code=401, detail="Invalid or expired token") from exc
+    header = jwt.get_unverified_header(token)
+    candidate_secrets: list[str] = []
+    header_kid = str(header.get("kid", "")).strip()
+    if header_kid and header_kid in settings.JWT_SECRETS:
+        candidate_secrets.append(settings.JWT_SECRETS[header_kid])
+    for kid, secret in settings.JWT_SECRETS.items():
+        if kid != header_kid:
+            candidate_secrets.append(secret)
+
+    payload = None
+    last_exc: Exception | None = None
+    for secret in candidate_secrets:
+        try:
+            payload = jwt.decode(
+                token,
+                secret,
+                algorithms=[settings.JWT_ALGORITHM],
+                audience=settings.JWT_AUDIENCE,
+                issuer=settings.JWT_ISSUER,
+            )
+            break
+        except Exception as exc:
+            last_exc = exc
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired token") from last_exc
 
     username = str(payload.get("sub", ""))
     role = str(payload.get("role", "viewer"))

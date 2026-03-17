@@ -30,5 +30,9 @@ jobs:
         working-directory: backend
         run: pytest --maxfail=1 --disable-warnings --cov=. --cov-report=term --cov-fail-under=70
 
+      - name: Backup-restore drill
+        working-directory: backend
+        run: pytest -q tests/test_history_store.py
+
       - name: Dependency vulnerability audit
         run: pip-audit -r backend/requirements.txt
