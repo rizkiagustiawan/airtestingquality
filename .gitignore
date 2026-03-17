@@ -3,10 +3,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.env
+.env
 .venv/
 venv/
 env/
 .pytest_cache/
+.mypy_cache/
+*.db
+backend/.mypy_cache/
+backend/__pycache__/
 
 # Node / Frontend (if applicable later)
 node_modules/
