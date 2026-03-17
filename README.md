@@ -178,6 +178,39 @@ See:
 - `docs/COMPLIANCE_SCOPE.md`
 - `docs/SECURITY_AND_PRIVACY.md`
 
+## Scientific & Legal Positioning
+
+This repository is designed as an environmental engineering portfolio prototype.
+
+### Scientific Positioning
+- The system combines monitoring, QA/QC, ISPU calculation, meteorological analysis, and simplified dispersion visualization.
+- It uses deterministic synthetic data by default to provide a reproducible demo path.
+- The AERMOD-style and CALPUFF-style modules in this repository are simplified simulators for educational, screening, and workflow demonstration use.
+- The outputs should be interpreted as engineering screening indicators, not as certified regulatory modeling results.
+
+### Indonesian Regulatory Positioning
+- Compliance checks in this project are intended as screening support against reference ambient air quality limits used in the prototype.
+- The repository is informed by the Indonesian ambient air quality context, including `PP No. 22 Tahun 2021`.
+- ISPU-related functionality is included to reflect common Indonesian air quality communication practice.
+- This repository should not be presented as a substitute for formal AMDAL, permitting, or regulator-approved assessment workflows.
+
+### Global Reference Positioning
+- The project includes comparison against WHO 2021 air quality guideline references for health-oriented benchmarking.
+- The software design also includes governance-oriented controls such as auth, audit trail, retention, backup/restore, and observability.
+- These controls improve engineering maturity, but they do not by themselves make the system legally compliant across all jurisdictions.
+
+### What This Project Is
+- an environmental engineering prototype
+- a compliance-oriented screening tool
+- a production-minded portfolio project
+- a demonstration of monitoring, analytics, and governance integration
+
+### What This Project Is Not
+- a certified regulatory modeling platform
+- an official implementation of AERMOD or CALPUFF
+- a formal legal compliance system
+- a replacement for field validation, regulator review, or external legal sign-off
+
 ## Detailed Local Setup
 If the `Fastest Local Demo` section already works for you, you can skip this section.
 
