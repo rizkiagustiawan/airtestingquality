@@ -54,6 +54,7 @@ def record_dashboard_snapshot(
     stations: list[dict],
     qaqc_summary: dict,
 ) -> None:
+    init_history_db(db_path)
     conn = sqlite3.connect(str(db_path))
     try:
         conn.execute(
@@ -130,6 +131,7 @@ def record_dashboard_snapshot(
 def get_station_history(
     db_path: Path, station_id: str, pollutant: str, cleaned_only: bool, limit: int
 ) -> list[dict]:
+    init_history_db(db_path)
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
     try:
