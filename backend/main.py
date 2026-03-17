@@ -20,6 +20,20 @@ from met_data import (
 from qa_qc import run_qaqc
 from settings import settings
 
+_PREVIOUS_MEASUREMENTS_BY_STATION: dict[str, dict] = {}
+
+
+def _compliance_timeframe_for(parameter: str) -> str:
+    normalized = parameter.lower().replace(".", "")
+    return {
+        "pm25": "24h",
+        "pm10": "24h",
+        "so2": "1h",
+        "no2": "1h",
+        "co": "8h",
+        "o3": "8h",
+    }.get(normalized, "24h")
+
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
 
@@ -53,21 +67,26 @@ def get_dashboard_data(
         stations_data, provenance = fetch_indonesia_air_quality(source=source)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    stations_data, qaqc_summary = run_qaqc(stations_data)
+    stations_data, qaqc_summary = run_qaqc(
+        stations_data, previous_by_station=_PREVIOUS_MEASUREMENTS_BY_STATION
+    )
     dashboard_response = []
 
     for station in stations_data:
+        station_id = str(station.get("id", ""))
         metrics = station.get("measurements", {})
         overall_ispu = get_overall_ispu(metrics)
         compliance_results = []
         for param, val in metrics.items():
-            comp = verify_compliance(parameter=param, concentration=val)
+            timeframe = _compliance_timeframe_for(param)
+            comp = verify_compliance(parameter=param, concentration=val, timeframe=timeframe)
             if comp.get("status") != "unknown":
                 compliance_results.append(comp)
 
         station["ispu"] = overall_ispu
         station["compliance"] = compliance_results
         dashboard_response.append(station)
+        _PREVIOUS_MEASUREMENTS_BY_STATION[station_id] = dict(metrics)
 
     return {
         "status": "success",
@@ -115,12 +134,14 @@ def api_timeseries(hours: int = Query(72, ge=1, le=720)) -> dict:
 @app.get("/api/aermod/dispersion")
 def api_aermod_dispersion(
     source_id: str = Query("smelter-stack"),
+    pollutant: str = Query("pm10", pattern="^(pm10|pm25|so2|no2|co)$"),
     wind_dir: float = Query(230.0, ge=0, le=360),
     wind_speed: float = Query(3.5, ge=0.1, le=30),
     stability: str = Query("C"),
 ) -> dict:
     return compute_dispersion_grid(
         source_id=source_id,
+        pollutant=pollutant,
         wind_dir=wind_dir,
         wind_speed=wind_speed,
         stability=stability,
@@ -130,7 +151,7 @@ def api_aermod_dispersion(
 @app.get("/api/calpuff/plume")
 def api_calpuff_plume(
     duration_hours: int = Query(12, ge=1, le=48),
-    pollutant: str = Query("pm10"),
+    pollutant: str = Query("pm10", pattern="^(pm10|pm25|so2|no2|co)$"),
 ) -> dict:
     try:
         return compute_cumulative_plume(duration_hours=duration_hours, pollutant=pollutant)

@@ -49,12 +49,8 @@ def verify_compliance(parameter: str, concentration: float, timeframe="24h") -> 
         result["indonesia_compliant"] = concentration <= limit_val
         result["indonesia_limit"] = limit_val
     else:
-        # Fallback to 1h or other available limit for representation if 24h not strictly matched
-        fallback = next((k for k in param_limits if "pp22" in k), None)
-        if fallback:
-            result["indonesia_compliant"] = concentration <= param_limits[fallback]
-            result["indonesia_limit"] = param_limits[fallback]
-            result["indonesia_note"] = f"Compared against {fallback.split('_')[1]} limit"
+        result["indonesia_compliant"] = None
+        result["indonesia_note"] = f"No PP22 {timeframe} limit configured"
             
     # Check WHO 2021 Guidelines
     who_key = f"who_{timeframe}"
@@ -63,10 +59,7 @@ def verify_compliance(parameter: str, concentration: float, timeframe="24h") -> 
         result["who_compliant"] = concentration <= limit_val
         result["who_limit"] = limit_val
     else:
-        fallback = next((k for k in param_limits if "who" in k), None)
-        if fallback:
-            result["who_compliant"] = concentration <= param_limits[fallback]
-            result["who_limit"] = param_limits[fallback]
-            result["who_note"] = f"Compared against {fallback.split('_')[1]} limit"
+        result["who_compliant"] = None
+        result["who_note"] = f"No WHO {timeframe} limit configured"
             
     return result

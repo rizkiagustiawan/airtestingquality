@@ -39,34 +39,33 @@ function initApp() {
             setTimeout(() => {
                 document.getElementById('loading-overlay').classList.add('hidden');
                 fetchInitialData().then(() => {
-                    startFakeLiveStream(); // Start breathing life into UI
+                    startLivePolling();
                 });
             }, 600);
         }
     }, 150);
 }
 
-function startFakeLiveStream() {
-    // Artificial fluctuations every 5s to simulate real-time WebSocket Stream
-    setInterval(() => {
-        state.dashboardData.forEach(st => {
-            if (st.ispu && Math.random() > 0.5) {
-                // Fluctuate ISPU by -2 to +2
-                const delta = Math.floor(Math.random() * 5) - 2;
-                st.ispu.value = Math.max(0, Math.min(500, st.ispu.value + delta));
+function startLivePolling() {
+    // Refresh data from backend to avoid synthetic UI-only fluctuations.
+    setInterval(async () => {
+        try {
+            const dashRes = await fetch(`${API_BASE}/api/dashboard-data`);
+            const dashData = await dashRes.json();
+            if (dashData.status !== 'success') return;
+            state.dashboardData = dashData.data;
+
+            if (state.activeModule === 'monitoring') {
+                renderMonitoringList();
+                renderMonitoringMarkers();
+                const activeTitle = document.getElementById('ispu-station-name').textContent;
+                const openSt = state.dashboardData.find(s => s.location === activeTitle);
+                if (openSt) showMonitoringDetails(openSt);
             }
-        });
-
-        // Only re-render if we are in monitoring view to save perf
-        if (state.activeModule === 'monitoring') {
-            renderMonitoringList();
-
-            // If details panel is open, update that too if it matches
-            const activeTitle = document.getElementById('ispu-station-name').textContent;
-            const openSt = state.dashboardData.find(s => s.location === activeTitle);
-            if (openSt) showMonitoringDetails(openSt);
+        } catch (err) {
+            console.error("Live polling failed", err);
         }
-    }, 5000);
+    }, 30000);
 }
 
 function initMap() {
@@ -504,6 +503,7 @@ function renderTimeSeries(data, pollutant) {
 async function runAERMOD() {
     const btn = document.getElementById('aermod-run');
     const srcId = document.getElementById('aermod-source').value;
+    const pol = document.getElementById('aermod-pollutant').value;
     const wDir = document.getElementById('aermod-wind-dir').value;
     const wSpd = document.getElementById('aermod-wind-speed').value;
     const stab = document.getElementById('aermod-stability').value;
@@ -512,7 +512,7 @@ async function runAERMOD() {
     btn.disabled = true;
 
     try {
-        const res = await fetch(`${API_BASE}/api/aermod/dispersion?source_id=${srcId}&wind_dir=${wDir}&wind_speed=${wSpd}&stability=${stab}`);
+        const res = await fetch(`${API_BASE}/api/aermod/dispersion?source_id=${srcId}&pollutant=${pol}&wind_dir=${wDir}&wind_speed=${wSpd}&stability=${stab}`);
         const geojson = await res.json();
 
         state.layers.aermod.clearLayers();

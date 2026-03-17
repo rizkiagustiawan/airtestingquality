@@ -38,3 +38,17 @@ def test_dashboard_data_rejects_invalid_source():
 def test_dashboard_data_waqi_without_token_returns_400():
     response = client.get("/api/dashboard-data?source=waqi")
     assert response.status_code == 400
+
+
+def test_aermod_accepts_no2_pollutant():
+    response = client.get("/api/aermod/dispersion?pollutant=no2")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["pollutant"] == "no2"
+
+
+def test_calpuff_accepts_no2_pollutant():
+    response = client.get("/api/calpuff/plume?pollutant=no2&duration_hours=3")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["pollutant"] == "no2"

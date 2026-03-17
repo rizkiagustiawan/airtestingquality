@@ -76,14 +76,18 @@ def run_qaqc_on_station(station: dict, prev_measurements: dict | None = None) ->
     return out
 
 
-def run_qaqc(stations: list[dict]) -> tuple[list[dict], dict]:
+def run_qaqc(
+    stations: list[dict], previous_by_station: dict[str, dict] | None = None
+) -> tuple[list[dict], dict]:
     processed = []
     total_valid = 0
     total_expected = 0
     total_flags = 0
+    prev_map = previous_by_station or {}
 
     for station in stations:
-        checked = run_qaqc_on_station(station)
+        station_id = str(station.get("id", ""))
+        checked = run_qaqc_on_station(station, prev_measurements=prev_map.get(station_id))
         processed.append(checked)
         qa = checked["qa_qc"]
         total_valid += qa["valid_count"]

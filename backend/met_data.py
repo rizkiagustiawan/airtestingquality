@@ -192,7 +192,7 @@ def get_polar_plot_data(pollutant: str = "pm10", met_data: list[dict] | None = N
         # Base concentration depends on wind speed (moderate wind = most transport)
         speed_factor = ws * math.exp(-ws / 5)
 
-        base_conc = {"pm10": 45, "pm25": 15, "so2": 20, "nox": 18, "co": 800}
+        base_conc = {"pm10": 45, "pm25": 15, "so2": 20, "no2": 18, "co": 800}
         base = base_conc.get(pollutant, 30)
 
         conc = base * (0.3 + 0.7 * dir_factor) * (0.5 + speed_factor / 3)
@@ -217,8 +217,8 @@ def get_timeseries_data(met_data: list[dict] | None = None) -> dict:
     if met_data is None:
         met_data = generate_met_timeseries(72)
 
-    pollutants = ["pm10", "pm25", "so2", "nox", "co"]
-    base_values = {"pm10": 45, "pm25": 15, "so2": 18, "nox": 12, "co": 850}
+    pollutants = ["pm10", "pm25", "so2", "no2", "co"]
+    base_values = {"pm10": 45, "pm25": 15, "so2": 18, "no2": 12, "co": 850}
 
     series: dict[str, list[dict]] = {p: [] for p in pollutants}
 

@@ -63,6 +63,7 @@ def _gaussian_conc(
 
 def compute_dispersion_grid(
     source_id: str = "smelter-stack",
+    pollutant: str = "pm10",
     wind_dir: float = 230.0,       # deg, direction wind is blowing FROM
     wind_speed: float = 3.5,       # m/s
     stability: str = "C",
@@ -80,8 +81,10 @@ def compute_dispersion_grid(
     src_lat = source["lat"]
     src_lon = source["lon"]
     stack_h = source.get("stack_height_m", 0)
-    pollutant = "pm10"
-    q = source["emissions"].get(pollutant, 1.0)
+    emission_key = pollutant
+    if pollutant == "no2" and "no2" not in source["emissions"] and "nox" in source["emissions"]:
+        emission_key = "nox"
+    q = source["emissions"].get(emission_key, 1.0)
 
     # Effective stack height (simplified plume rise for point sources)
     effective_h = stack_h
@@ -130,11 +133,11 @@ def compute_dispersion_grid(
 
     # Convert grid to GeoJSON features with concentration bands
     bands = [
-        {"min": 0.5, "max": 10, "color": "#10B981", "opacity": 0.15, "label": "< 10 µg/m³ (Low)"},
-        {"min": 10, "max": 50, "color": "#3B82F6", "opacity": 0.25, "label": "10-50 µg/m³ (Moderate)"},
-        {"min": 50, "max": 75, "color": "#F59E0B", "opacity": 0.35, "label": "50-75 µg/m³ (PP22 Limit)"},
-        {"min": 75, "max": 150, "color": "#EF4444", "opacity": 0.45, "label": "75-150 µg/m³ (Exceed)"},
-        {"min": 150, "max": 99999, "color": "#7C2D12", "opacity": 0.55, "label": "> 150 µg/m³ (Critical)"},
+        {"min": 0.5, "max": 10, "color": "#10B981", "opacity": 0.15, "label": "< 10 ug/m3 (Low)"},
+        {"min": 10, "max": 50, "color": "#3B82F6", "opacity": 0.25, "label": "10-50 ug/m3 (Moderate)"},
+        {"min": 50, "max": 75, "color": "#F59E0B", "opacity": 0.35, "label": "50-75 ug/m3 (PP22 Limit)"},
+        {"min": 75, "max": 150, "color": "#EF4444", "opacity": 0.45, "label": "75-150 ug/m3 (Exceed)"},
+        {"min": 150, "max": 99999, "color": "#7C2D12", "opacity": 0.55, "label": "> 150 ug/m3 (Critical)"},
     ]
 
     features = []

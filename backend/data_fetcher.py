@@ -1,17 +1,31 @@
 import os
 import random
 from datetime import datetime
+import logging
 
 import requests
 
 
 SUPPORTED_POLLUTANTS = {"pm25", "pm10", "so2", "no2", "co", "o3"}
+logger = logging.getLogger(__name__)
 
 
 def _normalize_pollutant(name: str) -> str:
     normalized = name.strip().lower().replace(".", "")
-    aliases = {"pm2_5": "pm25", "pm2p5": "pm25"}
+    aliases = {"pm2_5": "pm25", "pm2p5": "pm25", "nox": "no2"}
     return aliases.get(normalized, normalized)
+
+
+def _normalize_waqi_value(pollutant: str, value: float) -> tuple[float, str]:
+    """
+    WAQI IAQI typically reports:
+    - PM/NO2/SO2/O3 in ug/m3
+    - CO in mg/m3
+    Convert to ug/m3 for consistent internal calculations.
+    """
+    if pollutant == "co":
+        return value * 1000.0, "mg/m3_to_ug/m3_assumed"
+    return value, "as_reported_assumed_ug/m3"
 
 
 def fetch_synthetic_indonesia_air_quality() -> list[dict]:
@@ -107,13 +121,16 @@ def fetch_waqi_indonesia_air_quality(
         station_id = str(data.get("idx", city_key))
 
         measurements = {}
+        unit_assumptions = {}
         for key, value in iaqi.items():
             pollutant = _normalize_pollutant(key)
             if pollutant not in SUPPORTED_POLLUTANTS:
                 continue
             reading = value.get("v") if isinstance(value, dict) else None
             if isinstance(reading, (int, float)):
-                measurements[pollutant] = float(reading)
+                norm_val, assumption = _normalize_waqi_value(pollutant, float(reading))
+                measurements[pollutant] = float(norm_val)
+                unit_assumptions[pollutant] = assumption
 
         if not measurements:
             continue
@@ -127,6 +144,8 @@ def fetch_waqi_indonesia_air_quality(
                 "longitude": geo[1],
                 "last_updated": now_iso,
                 "source": "waqi",
+                "measurement_unit": "ug/m3",
+                "unit_assumptions": unit_assumptions,
                 "measurements": measurements,
             }
         )
@@ -162,6 +181,6 @@ def fetch_indonesia_air_quality(source: str = "auto") -> tuple[list[dict], dict]
         if data:
             return data, {"selected_source": "waqi", "fallback_used": False}
     except Exception:
-        pass
+        logger.exception("Failed to fetch WAQI data. Falling back to synthetic source.")
 
     return fetch_synthetic_indonesia_air_quality(), {"selected_source": "synthetic", "fallback_used": True}

@@ -63,13 +63,13 @@ def compute_cumulative_plume(
     pollutant: str = "pm10"
 ) -> dict:
     """
-    Run a simplified CALPUFF simulation:
-    1. Every dt_minutes, each source releases a puff
-    2. All puffs are advected by the time-varying wind field
-    3. After simulation, puff positions and sizes form the plume
-    
     Returns GeoJSON for rendering the plume on Leaflet.
     """
+    # Force casting to avoid TypeErrors in some environments
+    duration_hours = int(duration_hours)
+    dt_minutes = int(dt_minutes)
+    pollutant = str(pollutant)
+
     dt_s = dt_minutes * 60
     n_steps = int((duration_hours * 60) / dt_minutes)
     start_hour = 6  # simulation starts at 06:00 local
@@ -85,7 +85,10 @@ def compute_cumulative_plume(
         # Release new puffs from each source
         for src in EMISSION_SOURCES:
             emissions_dict = typing.cast(dict[str, float], src.get("emissions", {}))
-            q = emissions_dict.get(pollutant, 0)
+            emission_key = pollutant
+            if pollutant == "no2" and "no2" not in emissions_dict and "nox" in emissions_dict:
+                emission_key = "nox"
+            q = emissions_dict.get(emission_key, 0)
             if q <= 0:
                 continue
             puffs.append({
@@ -177,11 +180,11 @@ def compute_cumulative_plume(
 
     # Build legend
     bands = [
-        {"label": "> 100 µg/m³ (Critical)", "color": "#DC2626"},
-        {"label": "50-100 µg/m³ (High)", "color": "#F59E0B"},
-        {"label": "20-50 µg/m³ (Moderate)", "color": "#3B82F6"},
-        {"label": "5-20 µg/m³ (Low)", "color": "#06B6D4"},
-        {"label": "< 5 µg/m³ (Background)", "color": "#10B981"},
+        {"label": "> 100 ug/m3 (Critical)", "color": "#DC2626"},
+        {"label": "50-100 ug/m3 (High)", "color": "#F59E0B"},
+        {"label": "20-50 ug/m3 (Moderate)", "color": "#3B82F6"},
+        {"label": "5-20 ug/m3 (Low)", "color": "#06B6D4"},
+        {"label": "< 5 ug/m3 (Background)", "color": "#10B981"},
     ]
 
     return {

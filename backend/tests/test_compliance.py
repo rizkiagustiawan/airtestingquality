@@ -13,3 +13,5 @@ def test_o3_fallback_timeframe_note_exists():
     result = verify_compliance("o3", concentration=80.0, timeframe="24h")
     assert "indonesia_note" in result
     assert "who_note" in result
+    assert result["indonesia_compliant"] is None
+    assert result["who_compliant"] is None

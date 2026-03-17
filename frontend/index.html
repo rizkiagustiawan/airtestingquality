@@ -102,7 +102,7 @@
                                 <option value="pm10">PM10</option>
                                 <option value="pm25">PM2.5</option>
                                 <option value="so2">SO₂</option>
-                                <option value="nox">NOx</option>
+                                <option value="no2">NOâ‚‚</option>
                                 <option value="co">CO</option>
                             </select>
                         </div>
@@ -121,6 +121,16 @@
                             <label>Emission Source</label>
                             <select id="aermod-source" class="control-select">
                                 <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Pollutant</label>
+                            <select id="aermod-pollutant" class="control-select">
+                                <option value="pm10" selected>PM10</option>
+                                <option value="pm25">PM2.5</option>
+                                <option value="so2">SOâ‚‚</option>
+                                <option value="no2">NOâ‚‚</option>
+                                <option value="co">CO</option>
                             </select>
                         </div>
                         <div class="control-group">
@@ -168,7 +178,8 @@
                                 <option value="pm10">PM10</option>
                                 <option value="pm25">PM2.5</option>
                                 <option value="so2">SO₂</option>
-                                <option value="nox">NOx</option>
+                                <option value="no2">NOâ‚‚</option>
+                                <option value="co">CO</option>
                             </select>
                         </div>
                         <button class="control-btn" id="calpuff-run"><i class="fas fa-play"></i> Run Transport</button>
