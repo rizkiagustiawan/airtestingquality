@@ -35,7 +35,8 @@ def test_dashboard_data_rejects_invalid_source():
     assert response.status_code == 422
 
 
-def test_dashboard_data_waqi_without_token_returns_400():
+def test_dashboard_data_waqi_without_token_returns_400(monkeypatch):
+    monkeypatch.delenv("WAQI_TOKEN", raising=False)
     response = client.get("/api/dashboard-data?source=waqi")
     assert response.status_code == 400
 

@@ -29,6 +29,12 @@ class AuthContext(BaseModel):
 
 
 bearer_scheme = HTTPBearer(auto_error=False)
+TRUSTED_IP_NETWORKS = (
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("fc00::/7"),
+)
 
 
 def is_trusted_request_host(host: str | None) -> bool:
@@ -41,7 +47,7 @@ def is_trusted_request_host(host: str | None) -> bool:
         ip = ipaddress.ip_address(normalized)
     except ValueError:
         return False
-    return ip.is_loopback or ip.is_private
+    return ip.is_loopback or any(ip in network for network in TRUSTED_IP_NETWORKS)
 
 
 def is_valid_user(username: str, password: str) -> bool:
