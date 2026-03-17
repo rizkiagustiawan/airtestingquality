@@ -16,8 +16,13 @@ let state = {
 };
 
 const API_BASE = '';
+const DEFAULT_DATA_SOURCE = new URLSearchParams(window.location.search).get('source') || 'synthetic';
 
 let map = null;
+
+function getDashboardDataUrl() {
+    return `${API_BASE}/api/dashboard-data?source=${encodeURIComponent(DEFAULT_DATA_SOURCE)}`;
+}
 
 // -------------------------------------------------------------
 // Initialization & Map Setup
@@ -50,7 +55,7 @@ function startLivePolling() {
     // Refresh data from backend to avoid synthetic UI-only fluctuations.
     setInterval(async () => {
         try {
-            const dashRes = await fetch(`${API_BASE}/api/dashboard-data`);
+            const dashRes = await fetch(getDashboardDataUrl());
             const dashData = await dashRes.json();
             if (dashData.status !== 'success') return;
             state.dashboardData = dashData.data;
@@ -117,7 +122,7 @@ function setupEventListeners() {
 
     // Range Inputs text sync
     document.getElementById('aermod-wind-dir').addEventListener('input', (e) => {
-        document.getElementById('aermod-wind-dir-val').textContent = `${e.target.value}°`;
+        document.getElementById('aermod-wind-dir-val').textContent = `${e.target.value} deg`;
     });
     document.getElementById('aermod-wind-speed').addEventListener('input', (e) => {
         document.getElementById('aermod-wind-speed-val').textContent = `${e.target.value} m/s`;
@@ -186,7 +191,7 @@ function switchModule(moduleName) {
 async function fetchInitialData() {
     try {
         // Fetch Dashboard Data
-        const dashRes = await fetch(`${API_BASE}/api/dashboard-data`);
+        const dashRes = await fetch(getDashboardDataUrl());
         const dashData = await dashRes.json();
         if (dashData.status === 'success') {
             state.dashboardData = dashData.data;
@@ -651,3 +656,4 @@ function showToast(title, message, type = 'info') {
 
 // Run it!
 document.addEventListener('DOMContentLoaded', initApp);
+

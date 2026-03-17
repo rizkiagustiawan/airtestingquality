@@ -2,6 +2,21 @@
 
 Production-minded air quality platform for environmental monitoring, compliance screening, and atmospheric dispersion visualization.
 
+## Try It Fast
+- Public-safe default: the frontend loads the deterministic `synthetic` dataset first, so anyone can try the app without a WAQI token.
+- Fastest Windows path:
+  1. Open PowerShell in the repo root.
+  2. Run `cd backend`
+  3. Run `python -m venv .venv`
+  4. Run `.\.venv\Scripts\python.exe -m pip install -r requirements.txt`
+  5. Go back to the repo root and run `run_dashboard.bat`
+- Manual backend start:
+  - `cd backend`
+  - `.\.venv\Scripts\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8000`
+- Optional real-data mode:
+  - add `WAQI_TOKEN` to `.env`
+  - open the UI with `?source=waqi` or set `DATA_SOURCE=waqi`
+
 ## Why This Project Stands Out
 - Domain-focused engineering: ISPU computation, ambient standard checks, and dispersion mapping in one product.
 - Full-stack implementation: FastAPI backend + spatial front-end visualization.
@@ -50,7 +65,7 @@ flowchart LR
     U["User (Browser)"] --> FE["Frontend UI (Leaflet + Chart.js)\nfrontend/index.html + app.js"]
 
     FE -->|GET /api/health| API["FastAPI Backend\nbackend/main.py"]
-    FE -->|GET /api/dashboard-data?source=auto| API
+    FE -->|GET /api/dashboard-data?source=synthetic| API
     FE -->|GET /api/openair/*| API
     FE -->|GET /api/aermod/dispersion| API
     FE -->|GET /api/calpuff/plume| API
@@ -92,18 +107,30 @@ See:
 ## Quick Start (Local)
 1. Create env file:
    - Copy `.env.example` to `.env`
-   - Replace placeholders for `SECRET_KEY` and database password.
+   - For the easiest portfolio demo, set `DATA_SOURCE=synthetic`
+   - The sample env defaults to SQLite for local-first setup
+   - Replace placeholder secrets before enabling auth or public deployment
 2. Install backend dependencies:
-   ```bash
+   ```powershell
    cd backend
-   pip install -r requirements.txt
+   python -m venv .venv
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
    ```
-3. Run API server:
-   ```bash
-   uvicorn main:app --reload
+3. Run the app:
+   ```powershell
+   cd ..
+   run_dashboard.bat
+   ```
+   Or start manually:
+   ```powershell
+   cd backend
+   .\.venv\Scripts\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
    ```
 4. Open dashboard:
    - [http://127.0.0.1:8000/app/](http://127.0.0.1:8000/app/)
+5. Validate key endpoints:
+   - [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
+   - [http://127.0.0.1:8000/metrics](http://127.0.0.1:8000/metrics)
 
 ## Docker
 ```bash
@@ -112,7 +139,7 @@ docker compose --env-file .env up --build
 
 Monitoring stack included in Docker:
 - Prometheus: `http://localhost:9090`
-- Grafana: `http://localhost:3000` (default `admin/admin`)
+- Grafana: `http://localhost:3000` using `GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD` from `.env`
 - Alertmanager: `http://localhost:9093`
 - Grafana auto-loads `monitoring/grafana/dashboards/airq-overview.json`
 
@@ -169,3 +196,4 @@ Operational policy docs:
 - Prioritizes practical environmental analytics with clear system boundaries.
 - Demonstrates ability to connect scientific logic, data services, and geospatial visualization.
 - Includes baseline secure configuration practices expected in real deployments.
+- Includes an optional SQLAlchemy/PostGIS schema scaffold in `backend/models.py` for future persistence expansion.
