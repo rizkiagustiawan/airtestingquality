@@ -61,7 +61,7 @@ def test_get_auth_context_accepts_previous_secret(monkeypatch):
     )
 
     creds = auth.HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
-    context = auth.get_auth_context(creds)
+    context = auth.get_auth_context(creds, _DummyRequest("127.0.0.1"))
     assert context.username == "viewer"
     assert context.role == "viewer"
 

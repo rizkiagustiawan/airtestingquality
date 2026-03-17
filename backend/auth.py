@@ -123,11 +123,11 @@ def create_access_token(username: str, role: str) -> tuple[str, int]:
 
 def get_auth_context(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
-    request: Request | None = None,
+    request: Request,
 ) -> AuthContext:
     if not settings.AUTH_ENABLED:
-        request_host = request.client.host if request and request.client else None
-        if request is None or is_trusted_request_host(request_host):
+        request_host = request.client.host if request.client else None
+        if is_trusted_request_host(request_host):
             return AuthContext(username="local-dev", role="admin")
         return AuthContext(username="anonymous", role="anonymous")
 
