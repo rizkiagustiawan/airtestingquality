@@ -5,7 +5,7 @@
 [![Vercel](https://img.shields.io/badge/deploy-Vercel-black?logo=vercel)](https://vercel.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
-Production-minded air quality platform for environmental monitoring, compliance screening, and atmospheric dispersion visualization.
+AirQ Web GIS is a production-minded environmental engineering portfolio project that brings together air quality monitoring, QA/QC, ISPU calculation, compliance-oriented screening, meteorological analytics, and simplified atmospheric dispersion visualization in a single system. It is designed to demonstrate how scientific logic, geospatial interfaces, and operational governance features can be integrated into a practical air quality workflow, while remaining explicit that the repository is a prototype for demonstration and screening rather than a certified regulatory platform.
 
 ## At a Glance
 - Purpose: showcase an environmental engineering workflow that combines monitoring, screening compliance, QA/QC, geospatial visualization, and operational governance.
