@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
 
@@ -55,7 +56,24 @@ def _compliance_timeframe_for(parameter: str) -> str:
     }.get(normalized, "24h")
 
 
-app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
+def _init_runtime_state() -> None:
+    try:
+        _PREVIOUS_MEASUREMENTS_BY_STATION.update(load_station_history(settings.HISTORY_FILE))
+    except Exception:
+        pass
+    try:
+        init_history_db(settings.HISTORY_DB_FILE)
+    except Exception:
+        pass
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    _init_runtime_state()
+    yield
+
+
+app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -72,18 +90,6 @@ app.add_middleware(
 
 frontend_dir = Path(__file__).parent.parent / "frontend"
 frontend_dir.mkdir(parents=True, exist_ok=True)
-
-
-@app.on_event("startup")
-def load_runtime_history() -> None:
-    try:
-        _PREVIOUS_MEASUREMENTS_BY_STATION.update(load_station_history(settings.HISTORY_FILE))
-    except Exception:
-        pass
-    try:
-        init_history_db(settings.HISTORY_DB_FILE)
-    except Exception:
-        pass
 
 
 @app.get("/api/health")
