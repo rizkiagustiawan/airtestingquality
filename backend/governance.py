@@ -34,7 +34,7 @@ def save_station_history(history_path: Path, payload: dict[str, dict]) -> None:
 def append_audit_event(audit_path: Path, event_type: str, details: dict) -> None:
     _safe_mkdir(audit_path.parent)
     event = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "event_type": event_type,
         "details": details,
     }

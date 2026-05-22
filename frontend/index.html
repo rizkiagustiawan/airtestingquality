@@ -64,6 +64,16 @@
                         <span>CALPUFF</span>
                         <small>Long-range Transport</small>
                     </button>
+                    <button class="module-tab" data-module="forecast" id="tab-forecast">
+                        <i class="fas fa-magic"></i>
+                        <span>Forecast</span>
+                        <small>Predictive Analysis</small>
+                    </button>
+                    <button class="module-tab" data-module="reports" id="tab-reports">
+                        <i class="fas fa-file-contract"></i>
+                        <span>Reports</span>
+                        <small>Data Exports</small>
+                    </button>
                 </nav>
 
                 <div class="module-panels">
@@ -173,6 +183,68 @@
                             <p><strong>CALPUFF Lagrangian Puff</strong></p>
                             <p>Long-range, non-steady-state transport from all sources. Simulates sea-land breeze
                                 patterns.</p>
+                        </div>
+                    </div>
+
+                    <div class="module-panel" id="panel-forecast">
+                        <h3 class="panel-title"><i class="fas fa-magic"></i> ISPU Forecast</h3>
+                        <div class="control-group">
+                            <label>Forecast Horizon (hours)</label>
+                            <select id="forecast-horizon" class="control-select">
+                                <option value="24" selected>24 Hours</option>
+                                <option value="48">48 Hours</option>
+                                <option value="72">72 Hours</option>
+                            </select>
+                        </div>
+                        <button class="control-btn" id="forecast-run"><i class="fas fa-bolt"></i> Generate Forecast</button>
+                        <div id="forecast-summary" class="info-box" style="display:none">
+                            <p><strong>Peak Predicted ISPU:</strong> <span id="peak-ispu-val">--</span></p>
+                            <p><strong>Primary Driver:</strong> <span id="peak-ispu-param">--</span></p>
+                        </div>
+                        <div class="info-box">
+                            <p><strong>AI-Assisted Prediction</strong></p>
+                            <p>Combines projected meteorological patterns with industrial emission profiles to estimate future air quality trends.</p>
+                        </div>
+                    </div>
+                    <div class="module-panel" id="panel-reports">
+                        <h3 class="panel-title"><i class="fas fa-file-contract"></i> Reports & Export</h3>
+                        
+                        <div class="report-section">
+                            <h4><i class="fas fa-file-alt"></i> Current Summary</h4>
+                            <div class="control-group">
+                                <label>Export Format</label>
+                                <select id="report-summary-format" class="control-select">
+                                    <option value="json">JSON Metadata</option>
+                                    <option value="csv" selected>CSV Spreadsheet</option>
+                                </select>
+                            </div>
+                            <button class="control-btn" id="report-summary-btn"><i class="fas fa-download"></i> Download Summary</button>
+                        </div>
+
+                        <div class="report-divider"></div>
+
+                        <div class="report-section">
+                            <h4><i class="fas fa-history"></i> Historical Trends</h4>
+                            <div class="control-group">
+                                <label>Station</label>
+                                <select id="report-hist-station" class="control-select"></select>
+                            </div>
+                            <div class="control-group">
+                                <label>Pollutant</label>
+                                <select id="report-hist-pollutant" class="control-select">
+                                    <option value="pm10">PM10</option>
+                                    <option value="pm25">PM2.5</option>
+                                    <option value="so2">SO2</option>
+                                    <option value="no2">NO2</option>
+                                    <option value="co">CO</option>
+                                </select>
+                            </div>
+                            <button class="control-btn" id="report-hist-btn"><i class="fas fa-file-csv"></i> Export Historical CSV</button>
+                        </div>
+                        
+                        <div class="info-box">
+                            <p><strong>Regulatory Compliance</strong></p>
+                            <p>Generated reports follow standard environmental reporting structures for PM10, PM2.5, and gaseous pollutants.</p>
                         </div>
                     </div>
                 </div>

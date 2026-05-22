@@ -52,9 +52,11 @@ Optional real-data mode:
 ## What You Can Demo In 5 Minutes
 1. Monitoring dashboard with ISPU and per-station air quality summaries.
 2. OpenAir-style wind rose, polar plot, and pollutant time series.
-3. AERMOD-style near-field plume visualization.
-4. CALPUFF-style long-range transport view.
-5. Metrics, alerts, audit trail, retention, and backup endpoints.
+3. Air quality forecasting for upcoming 24-72 hours.
+4. Automated report generation (Summary & Historical CSV exports).
+5. AERMOD-style near-field plume visualization.
+6. CALPUFF-style long-range transport view.
+7. Metrics, alerts, audit trail, retention, and backup endpoints.
 
 ## Visual Walkthrough
 The screenshots below show the dashboard, analytical modules, and operational features included in this portfolio project.
@@ -85,9 +87,10 @@ The screenshots below show the dashboard, analytical modules, and operational fe
 
 ## Why This Project Stands Out
 - Domain-focused engineering: ISPU computation, ambient standard checks, and dispersion mapping in one product.
+- Modern Python Standards: Refactored for Python 3.12+ compatibility with 100% timezone-aware datetime handling.
 - Full-stack implementation: FastAPI backend + spatial front-end visualization.
 - Security-aware delivery: environment-based secrets and configurable CORS policy.
-- Testable core logic: unit and API tests for critical calculations and service health.
+- Robust Testing: 34 automated tests covering core logic, API endpoints, and new features with 0 warnings.
 
 ## Core Capabilities
 - ISPU engine (PermenLHK No. 14/2020 style breakpoint interpolation).
@@ -118,6 +121,12 @@ The screenshots below show the dashboard, analytical modules, and operational fe
   - Wind rose
   - Polar plot
   - Pollutant time series
+- Air Quality Forecasting:
+  - 24-72 hour predictive trends for all pollutants and ISPU.
+  - Combines future meteorological projections with diurnal industrial activity profiles.
+- Interactive Reporting & Data Export:
+  - Automated CSV/JSON summary reports of current quality state.
+  - Historical trend CSV exports for specific stations and parameters.
 - AERMOD-style and CALPUFF-style visualization simulators for plume behavior insights.
 
 ## Architecture
@@ -126,7 +135,7 @@ The screenshots below show the dashboard, analytical modules, and operational fe
 - Infra: Docker Compose with PostGIS, Redis, optional Celery worker.
 
 ## Repository Structure
-- `backend/`: FastAPI app, scientific logic, QA/QC, auth, governance, and history store.
+- `backend/`: FastAPI app, scientific logic (AERMOD, CALPUFF, ISPU), QA/QC, Forecasting, Reporting, auth, governance, and history store.
 - `frontend/`: static dashboard UI with Leaflet and Chart.js.
 - `api/`: Vercel serverless entrypoint.
 - `monitoring/`: Prometheus, Alertmanager, and Grafana provisioning.
@@ -143,6 +152,8 @@ flowchart LR
     FE -->|GET /api/openair/*| API
     FE -->|GET /api/aermod/dispersion| API
     FE -->|GET /api/calpuff/plume| API
+    FE -->|GET /api/forecast| API
+    FE -->|GET /api/reports/*| API
     FE -->|GET /api/emission-sources| API
 
     API --> DF["Data Fetcher\nbackend/data_fetcher.py\nsources: synthetic | waqi | auto"]
@@ -153,6 +164,8 @@ flowchart LR
     API --> ISPU["ISPU Calculator\nbackend/ispu_calculator.py"]
     API --> CMP["Compliance Checker\nbackend/compliance.py\nPP 22/2021 + WHO 2021"]
     API --> OA["OpenAir-style Analytics\nbackend/met_data.py"]
+    API --> FC["Forecast Engine\nbackend/forecast_engine.py"]
+    API --> RG["Report Generator\nbackend/report_generator.py"]
     API --> AER["AERMOD-style Simulator\nbackend/aermod_simulator.py"]
     API --> CAL["CALPUFF-style Simulator\nbackend/calpuff_simulator.py"]
     API --> SRC["Emission Source Registry\nbackend/emission_sources.py"]
@@ -314,6 +327,9 @@ Operational policy docs:
 - `GET /metrics` (Prometheus format)
 - `GET /api/audit-events` (optionally protected via `x-api-key` when `ADMIN_API_KEY` is set)
 - `GET /api/alerts`
+- `GET /api/forecast?hours=24`
+- `GET /api/reports/summary?format=csv`
+- `GET /api/reports/historical?station_id=ntb-01&pollutant=pm10`
 - `GET /api/auth/posture`
 - `GET /api/history/station?station_id=<id>&pollutant=pm25`
 - `POST /api/auth/token` (when `AUTH_ENABLED=true`)

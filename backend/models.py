@@ -34,7 +34,7 @@ class SensorReading(Base):
     __tablename__ = "sensor_readings"
     id = Column(Integer, primary_key=True, index=True)
     station_id = Column(Integer, ForeignKey("stations.id"), nullable=False)
-    timestamp = Column(DateTime, default=datetime.datetime.utcnow, index=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     # Pollutants
     pm10 = Column(Float, nullable=True)
@@ -64,3 +64,4 @@ class EmissionSource(Base):
     stack_diameter = Column(Float, nullable=True)
     exit_velocity = Column(Float, nullable=True)
     exit_temp = Column(Float, nullable=True)
+ullable=True)

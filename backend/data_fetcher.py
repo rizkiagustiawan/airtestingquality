@@ -1,6 +1,6 @@
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 import requests
@@ -32,7 +32,7 @@ def fetch_synthetic_indonesia_air_quality() -> list[dict]:
     """
     Deterministic-friendly local data generator for portfolio demos.
     """
-    now_iso = datetime.utcnow().isoformat() + "Z"
+    now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     stations = [
         {
             "id": "ntb-01",
@@ -100,7 +100,7 @@ def fetch_waqi_indonesia_air_quality(
     if not token:
         raise ValueError("WAQI token is required")
 
-    now_iso = datetime.utcnow().isoformat() + "Z"
+    now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     stations = []
     for city in cities:
         city_key = city.strip()

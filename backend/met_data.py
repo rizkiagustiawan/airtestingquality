@@ -5,7 +5,7 @@ Generates realistic hourly wind/met data with tropical sea-land breeze patterns.
 
 import math
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 def _pasquill_stability(hour: int, wind_speed: float) -> str:
@@ -40,20 +40,22 @@ def _mixing_height(hour: int, stability: str) -> float:
     return round(base * diurnal_factor + random.uniform(-50, 50), 1)
 
 
-def generate_met_timeseries(hours: int = 72) -> list[dict]:
+def generate_met_timeseries(hours: int = 72, future: bool = False) -> list[dict]:
     """
     Generate hourly meteorological data simulating Sumbawa tropical conditions.
     
-    Wind pattern: Sea-land breeze cycle
-    - Day (09-17): Onshore breeze from SSW-W (200-270°), stronger winds
-    - Night (20-06): Offshore breeze from NE-E (30-90°), lighter winds
-    - Transition periods with variable light winds
+    If future=True, generates data starting from current time into the future.
+    If future=False, generates data for the past X hours ending at current time.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     data = []
 
     for i in range(hours):
-        t = now - timedelta(hours=hours - i)
+        if future:
+            t = now + timedelta(hours=i)
+        else:
+            t = now - timedelta(hours=hours - i)
+            
         hour = t.hour
 
         # --- Wind Direction (sea-land breeze cycle) ---
@@ -248,3 +250,4 @@ def get_timeseries_data(met_data: list[dict] | None = None) -> dict:
         "units": {p: "µg/m³" for p in pollutants},
         "series": series
     }
+

@@ -142,6 +142,9 @@ function setupEventListeners() {
     document.getElementById('openair-run').addEventListener('click', runOpenAir);
     document.getElementById('aermod-run').addEventListener('click', runAERMOD);
     document.getElementById('calpuff-run').addEventListener('click', runCALPUFF);
+    document.getElementById('forecast-run').addEventListener('click', runForecast);
+    document.getElementById('report-summary-btn').addEventListener('click', downloadSummaryReport);
+    document.getElementById('report-hist-btn').addEventListener('click', downloadHistoricalReport);
 
     // Panel Closers
     document.getElementById('chart-close').addEventListener('click', () => {
@@ -182,6 +185,15 @@ function switchModule(moduleName) {
     else if (moduleName === 'openair') {
         document.getElementById('ispu-panel').style.display = 'none';
         document.getElementById('map-legend').style.display = 'none';
+    }
+    else if (moduleName === 'forecast') {
+        document.getElementById('ispu-panel').style.display = 'none';
+        document.getElementById('map-legend').style.display = 'none';
+    }
+    else if (moduleName === 'reports') {
+        document.getElementById('ispu-panel').style.display = 'none';
+        document.getElementById('map-legend').style.display = 'none';
+        populateReportStations();
     }
 }
 
@@ -591,6 +603,132 @@ async function runCALPUFF() {
         btn.innerHTML = '<i class="fas fa-play"></i> Run Transport';
         btn.disabled = false;
     }
+}
+
+async function runForecast() {
+    const btn = document.getElementById('forecast-run');
+    const horizon = document.getElementById('forecast-horizon').value;
+
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Calculating...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/forecast?hours=${horizon}`);
+        const data = await res.json();
+
+        showChartPanel(`Air Quality Forecast (${horizon} Hours)`);
+        document.getElementById('analysisCanvas').style.display = 'none';
+        document.getElementById('chartCanvas').style.display = 'block';
+
+        renderForecastChart(data);
+
+        // Update summary
+        const peak = data.predictions.reduce((prev, current) => (prev.ispu.value > current.ispu.value) ? prev : current);
+        document.getElementById('forecast-summary').style.display = 'block';
+        document.getElementById('peak-ispu-val').textContent = peak.ispu.value;
+        document.getElementById('peak-ispu-param').textContent = peak.ispu.critical_parameter.toUpperCase();
+
+        showToast("Success", "Forecast generated based on current trends.", "success");
+    } catch (err) {
+        console.error("Forecast Error", err);
+        showToast("Error", "Failed to generate air quality forecast.", "error");
+    } finally {
+        btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Forecast';
+        btn.disabled = false;
+    }
+}
+
+function renderForecastChart(data) {
+    const ctx = document.getElementById('chartCanvas').getContext('2d');
+
+    if (state.chartInstance) {
+        state.chartInstance.destroy();
+    }
+
+    const labels = data.predictions.map(p => {
+        const date = new Date(p.timestamp);
+        return date.getHours() + ':00';
+    });
+    
+    const ispuValues = data.predictions.map(p => p.ispu.value);
+
+    Chart.defaults.color = '#9ca3af';
+
+    state.chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Predicted ISPU Index',
+                data: ispuValues,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 2,
+                pointBackgroundColor: '#10b981'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const p = data.predictions[context.dataIndex];
+                            return [
+                                `ISPU: ${p.ispu.value} (${p.ispu.category})`,
+                                `Driver: ${p.ispu.critical_parameter.toUpperCase()}`,
+                                `Wind: ${p.met.wind_speed} m/s @ ${p.met.wind_direction}°`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { 
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    suggestedMin: 0,
+                    suggestedMax: 100
+                }
+            }
+        }
+    });
+}
+
+function populateReportStations() {
+    const select = document.getElementById('report-hist-station');
+    if (!select) return;
+    select.innerHTML = '';
+    state.dashboardData.forEach(st => {
+        const opt = document.createElement('option');
+        opt.value = st.id;
+        opt.textContent = st.location;
+        select.appendChild(opt);
+    });
+}
+
+async function downloadSummaryReport() {
+    const format = document.getElementById('report-summary-format').value;
+    const url = `${API_BASE}/api/reports/summary?format=${format}&source=${encodeURIComponent(DEFAULT_DATA_SOURCE)}`;
+    window.open(url, '_blank');
+    showToast("Download Started", `Preparing ${format.toUpperCase()} summary...`, "success");
+}
+
+async function downloadHistoricalReport() {
+    const stationId = document.getElementById('report-hist-station').value;
+    const pollutant = document.getElementById('report-hist-pollutant').value;
+    if (!stationId) {
+        showToast("Error", "Please select a station first.", "error");
+        return;
+    }
+    const url = `${API_BASE}/api/reports/historical?station_id=${stationId}&pollutant=${pollutant}`;
+    window.open(url, '_blank');
+    showToast("Download Started", "Preparing historical trend CSV...", "success");
 }
 
 function renderLegend(title, bands) {

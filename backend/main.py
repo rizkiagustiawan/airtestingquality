@@ -12,6 +12,8 @@ from fastapi.staticfiles import StaticFiles
 
 from aermod_simulator import compute_dispersion_grid
 from calpuff_simulator import compute_cumulative_plume
+from forecast_engine import predict_aq_trends
+from report_generator import generate_summary_report, compile_historical_report
 from compliance import verify_compliance
 from data_fetcher import fetch_indonesia_air_quality
 from emission_sources import get_emission_sources, get_receptors, get_total_emissions
@@ -209,7 +211,7 @@ def get_dashboard_data(
     QAQC_VALID_RATE_PCT.set(float(qaqc_summary.get("overall_valid_rate_pct", 0.0)))
     _LATEST_DASHBOARD_META.update(
         {
-            "last_refresh": datetime.utcnow().isoformat() + "Z",
+            "last_refresh": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "source": provenance["selected_source"],
             "fallback_used": provenance["fallback_used"],
             "count": len(dashboard_response),
@@ -523,6 +525,65 @@ def api_calpuff_plume(
         return compute_cumulative_plume(duration_hours=duration_hours, pollutant=pollutant)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"CALPUFF Simulation Error: {exc}") from exc
+
+
+@app.get("/api/forecast")
+def api_forecast(hours: int = Query(24, ge=1, le=72)) -> dict:
+    """Predictive air quality trends for upcoming hours."""
+    return predict_aq_trends(hours=hours)
+
+
+@app.get("/api/reports/summary")
+def api_report_summary(
+    format: str = Query("json", pattern="^(json|csv)$"),
+    source: str = Query(settings.DATA_SOURCE)
+) -> Response:
+    """Generates a downloadable summary report of current quality."""
+    try:
+        stations_data, provenance = fetch_indonesia_air_quality(source=source)
+        stations_data, qaqc_summary = run_qaqc(stations_data, previous_by_station=_PREVIOUS_MEASUREMENTS_BY_STATION)
+        
+        # Enrich with ISPU
+        for st in stations_data:
+            st["ispu"] = get_overall_ispu(st.get("measurements", {}))
+            
+        content, mime = generate_summary_report(stations_data, qaqc_summary, format=format)
+        filename = f"air_quality_summary_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M')}.{format}"
+        
+        return Response(
+            content=content,
+            media_type=mime,
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Report Generation Error: {exc}")
+
+
+@app.get("/api/reports/historical")
+def api_report_historical(
+    station_id: str = Query(..., min_length=1),
+    pollutant: str = Query(..., pattern="^(pm10|pm25|so2|no2|co|o3)$"),
+    limit: int = Query(500, ge=1, le=5000)
+) -> Response:
+    """Generates a historical trend CSV report for a station."""
+    rows = get_station_history(
+        settings.HISTORY_DB_FILE,
+        station_id=station_id,
+        pollutant=pollutant,
+        cleaned_only=True,
+        limit=limit
+    )
+    if not rows:
+        raise HTTPException(status_code=404, detail="No historical data found for the given criteria")
+        
+    content, mime = compile_historical_report(rows, station_id, pollutant)
+    filename = f"history_{station_id}_{pollutant}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
+    
+    return Response(
+        content=content,
+        media_type=mime,
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 app.mount("/app", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")

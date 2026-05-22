@@ -111,3 +111,36 @@ def test_auth_posture_endpoint_shape():
     payload = response.json()
     assert payload["status"] == "success"
     assert "configured_kids" in payload
+
+def test_forecast_endpoint_shape():
+    response = client.get("/api/forecast?hours=24")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["hours"] == 24
+    assert len(payload["predictions"]) == 24
+
+def test_report_summary_endpoint():
+    # JSON format
+    response = client.get("/api/reports/summary?format=json")
+    assert response.status_code == 200
+    assert "application/json" in response.headers["content-type"]
+    
+    # CSV format
+    response = client.get("/api/reports/summary?format=csv")
+    assert response.status_code == 200
+    assert "text/csv" in response.headers["content-type"]
+    assert "attachment; filename=air_quality_summary_" in response.headers["content-disposition"]
+
+def test_report_historical_endpoint():
+    dash = client.get("/api/dashboard-data?source=synthetic").json()
+    station_id = dash["data"][0]["id"]
+    
+    # Valid request
+    response = client.get(f"/api/reports/historical?station_id={station_id}&pollutant=pm25")
+    assert response.status_code == 200
+    assert "text/csv" in response.headers["content-type"]
+    assert f"attachment; filename=history_{station_id}_" in response.headers["content-disposition"]
+    
+    # Invalid station
+    response = client.get("/api/reports/historical?station_id=nonexistent&pollutant=pm25")
+    assert response.status_code == 404
