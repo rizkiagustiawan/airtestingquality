@@ -2,7 +2,6 @@ import smtplib
 from email.mime.text import MIMEText
 
 import requests
-
 from observability import ALERTS_SENT_TOTAL
 from settings import settings
 

@@ -1,12 +1,12 @@
 """Optional SQLAlchemy/PostGIS schema scaffold for future persistence expansion."""
 
-import datetime
+from datetime import datetime, timezone
 
+from database import Base
 from geoalchemy2 import Geometry
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from database import Base
 
 class User(Base):
     __tablename__ = "users"
@@ -64,4 +64,3 @@ class EmissionSource(Base):
     stack_diameter = Column(Float, nullable=True)
     exit_velocity = Column(Float, nullable=True)
     exit_temp = Column(Float, nullable=True)
-ullable=True)

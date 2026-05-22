@@ -1,35 +1,10 @@
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-import logging
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
-from fastapi.responses import Response
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
-from fastapi.staticfiles import StaticFiles
-
 from aermod_simulator import compute_dispersion_grid
-from calpuff_simulator import compute_cumulative_plume
-from forecast_engine import predict_aq_trends
-from report_generator import generate_summary_report, compile_historical_report
-from compliance import verify_compliance
-from data_fetcher import fetch_indonesia_air_quality
-from emission_sources import get_emission_sources, get_receptors, get_total_emissions
-from ispu_calculator import get_overall_ispu
-from met_data import (
-    generate_met_timeseries,
-    get_polar_plot_data,
-    get_timeseries_data,
-    get_wind_rose_data,
-)
-from governance import (
-    append_audit_event,
-    load_station_history,
-    read_recent_audit_events,
-    save_station_history,
-)
 from alert_notifier import send_alerts
 from auth import (
     LoginRequest,
@@ -41,6 +16,21 @@ from auth import (
     require_roles,
     user_role,
 )
+from calpuff_simulator import compute_cumulative_plume
+from compliance import verify_compliance
+from data_fetcher import fetch_indonesia_air_quality
+from emission_sources import get_emission_sources, get_receptors, get_total_emissions
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse, Response
+from fastapi.staticfiles import StaticFiles
+from forecast_engine import predict_aq_trends
+from governance import (
+    append_audit_event,
+    load_station_history,
+    read_recent_audit_events,
+    save_station_history,
+)
 from history_store import (
     apply_retention_policy,
     backup_history_db,
@@ -48,6 +38,13 @@ from history_store import (
     init_history_db,
     record_dashboard_snapshot,
     restore_history_db,
+)
+from ispu_calculator import get_overall_ispu
+from met_data import (
+    generate_met_timeseries,
+    get_polar_plot_data,
+    get_timeseries_data,
+    get_wind_rose_data,
 )
 from observability import (
     API_REQUESTS_TOTAL,
@@ -58,6 +55,7 @@ from observability import (
 )
 from qa_qc import run_qaqc
 from rate_limit import SimpleRateLimitMiddleware
+from report_generator import compile_historical_report, generate_summary_report
 from settings import settings
 
 _PREVIOUS_MEASUREMENTS_BY_STATION: dict[str, dict] = {}
@@ -308,7 +306,9 @@ def api_alerts() -> dict:
                 "message": f"No fresh refresh within {settings.DATA_STALE_MINUTES} minutes.",
             }
         )
-    valid_rate = float(_LATEST_DASHBOARD_META.get("qaqc_summary", {}).get("overall_valid_rate_pct", 0.0))
+    valid_rate = float(
+        _LATEST_DASHBOARD_META.get("qaqc_summary", {}).get("overall_valid_rate_pct", 0.0)
+    )
     if last_refresh and valid_rate < settings.MIN_ACCEPTABLE_VALID_RATE_PCT:
         alerts.append(
             {
@@ -541,14 +541,17 @@ def api_report_summary(
     """Generates a downloadable summary report of current quality."""
     try:
         stations_data, provenance = fetch_indonesia_air_quality(source=source)
-        stations_data, qaqc_summary = run_qaqc(stations_data, previous_by_station=_PREVIOUS_MEASUREMENTS_BY_STATION)
+        stations_data, qaqc_summary = run_qaqc(
+            stations_data, previous_by_station=_PREVIOUS_MEASUREMENTS_BY_STATION
+        )
         
         # Enrich with ISPU
         for st in stations_data:
             st["ispu"] = get_overall_ispu(st.get("measurements", {}))
             
         content, mime = generate_summary_report(stations_data, qaqc_summary, format=format)
-        filename = f"air_quality_summary_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M')}.{format}"
+        now_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
+        filename = f"air_quality_summary_{now_str}.{format}"
         
         return Response(
             content=content,
@@ -574,10 +577,13 @@ def api_report_historical(
         limit=limit
     )
     if not rows:
-        raise HTTPException(status_code=404, detail="No historical data found for the given criteria")
+        raise HTTPException(
+            status_code=404, detail="No historical data found for the given criteria"
+        )
         
     content, mime = compile_historical_report(rows, station_id, pollutant)
-    filename = f"history_{station_id}_{pollutant}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
+    now_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+    filename = f"history_{station_id}_{pollutant}_{now_str}.csv"
     
     return Response(
         content=content,

@@ -1,5 +1,6 @@
 from forecast_engine import predict_aq_trends
 
+
 def test_predict_aq_trends_returns_expected_structure():
     hours = 12
     result = predict_aq_trends(hours=hours)

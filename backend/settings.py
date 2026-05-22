@@ -86,7 +86,9 @@ class Settings:
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin-change-me")
     VIEWER_USERNAME = os.getenv("VIEWER_USERNAME", "viewer")
     VIEWER_PASSWORD = os.getenv("VIEWER_PASSWORD", "viewer-change-me")
-    ALERT_CHANNELS = [c.strip().lower() for c in os.getenv("ALERT_CHANNELS", "").split(",") if c.strip()]
+    ALERT_CHANNELS = [
+        c.strip().lower() for c in os.getenv("ALERT_CHANNELS", "").split(",") if c.strip()
+    ]
     SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")

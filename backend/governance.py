@@ -1,8 +1,7 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
-
 
 _LOCK = Lock()
 

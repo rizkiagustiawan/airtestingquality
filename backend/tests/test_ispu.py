@@ -4,7 +4,8 @@ from ispu_calculator import calculate_ispu, get_overall_ispu
 def test_calculate_ispu_pm25_returns_expected_shape():
     result = calculate_ispu("pm25", 35.0)
     assert isinstance(result["value"], int)
-    assert result["category"] in {"Baik", "Sedang", "Tidak Sehat", "Sangat Tidak Sehat", "Berbahaya"}
+    expected_cats = {"Baik", "Sedang", "Tidak Sehat", "Sangat Tidak Sehat", "Berbahaya"}
+    assert result["category"] in expected_cats
     assert "color" in result
 
 

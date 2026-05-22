@@ -167,11 +167,46 @@ EMISSION_SOURCES = [
 
 # Sensitive receptor locations around the mining complex
 RECEPTORS = [
-    {"id": "desa-maluk", "name": "Desa Maluk", "lat": -8.7900, "lon": 116.8200, "type": "settlement", "population": 5200},
-    {"id": "desa-sekongkang", "name": "Desa Sekongkang", "lat": -8.8400, "lon": 116.8100, "type": "settlement", "population": 3800},
-    {"id": "desa-tongo", "name": "Desa Tongo", "lat": -8.8500, "lon": 116.8700, "type": "settlement", "population": 2100},
-    {"id": "pesisir-utara", "name": "Pesisir Utara", "lat": -8.7700, "lon": 116.8600, "type": "coastal", "population": 0},
-    {"id": "kawasan-hutan", "name": "Kawasan Hutan Lindung", "lat": -8.8600, "lon": 116.8400, "type": "protected_forest", "population": 0},
+    {
+        "id": "desa-maluk",
+        "name": "Desa Maluk",
+        "lat": -8.7900,
+        "lon": 116.8200,
+        "type": "settlement",
+        "population": 5200,
+    },
+    {
+        "id": "desa-sekongkang",
+        "name": "Desa Sekongkang",
+        "lat": -8.8400,
+        "lon": 116.8100,
+        "type": "settlement",
+        "population": 3800,
+    },
+    {
+        "id": "desa-tongo",
+        "name": "Desa Tongo",
+        "lat": -8.8500,
+        "lon": 116.8700,
+        "type": "settlement",
+        "population": 2100,
+    },
+    {
+        "id": "pesisir-utara",
+        "name": "Pesisir Utara",
+        "lat": -8.7700,
+        "lon": 116.8600,
+        "type": "coastal",
+        "population": 0,
+    },
+    {
+        "id": "kawasan-hutan",
+        "name": "Kawasan Hutan Lindung",
+        "lat": -8.8600,
+        "lon": 116.8400,
+        "type": "protected_forest",
+        "population": 0,
+    },
 ]
 
 

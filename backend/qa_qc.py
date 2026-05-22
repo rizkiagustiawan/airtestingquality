@@ -1,6 +1,5 @@
 from copy import deepcopy
 
-
 RANGE_RULES = {
     "pm25": (0.0, 500.0),
     "pm10": (0.0, 600.0),
@@ -30,10 +29,14 @@ def run_qaqc_on_station(station: dict, prev_measurements: dict | None = None) ->
     for pollutant, (min_val, max_val) in RANGE_RULES.items():
         value = raw.get(pollutant)
         if value is None:
-            flags.append({"pollutant": pollutant, "code": "missing", "detail": "No value in input payload"})
+            flags.append(
+                {"pollutant": pollutant, "code": "missing", "detail": "No value in input payload"}
+            )
             continue
         if not _is_number(value):
-            flags.append({"pollutant": pollutant, "code": "non_numeric", "detail": "Value is not numeric"})
+            flags.append(
+                {"pollutant": pollutant, "code": "non_numeric", "detail": "Value is not numeric"}
+            )
             continue
         if float(value) < min_val or float(value) > max_val:
             flags.append(

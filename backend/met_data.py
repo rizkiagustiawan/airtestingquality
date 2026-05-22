@@ -163,7 +163,9 @@ def get_wind_rose_data(met_data: list[dict] | None = None) -> dict:
         "speed_bins": speed_bins,
         "frequencies": freq_pct,
         "total_observations": total,
-        "calm_pct": round(100 * sum(1 for r in met_data if r["wind_speed_ms"] < 0.5) / max(total, 1), 2)
+        "calm_pct": round(
+            100 * sum(1 for r in met_data if r["wind_speed_ms"] < 0.5) / max(total, 1), 2
+        ),
     }
 
 

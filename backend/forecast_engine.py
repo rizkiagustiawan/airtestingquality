@@ -1,8 +1,9 @@
 import math
 import random
-from datetime import datetime, timedelta
-from met_data import generate_met_timeseries
+
 from ispu_calculator import calculate_ispu
+from met_data import generate_met_timeseries
+
 
 def predict_aq_trends(hours: int = 24) -> dict:
     """

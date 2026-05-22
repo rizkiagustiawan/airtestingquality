@@ -1,7 +1,9 @@
-import json
 import csv
 import io
-from report_generator import generate_summary_report, compile_historical_report
+import json
+
+from report_generator import compile_historical_report, generate_summary_report
+
 
 def test_generate_summary_report_json():
     stations = [

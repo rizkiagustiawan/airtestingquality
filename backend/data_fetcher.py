@@ -1,10 +1,9 @@
+import logging
 import os
 import random
 from datetime import datetime, timezone
-import logging
 
 import requests
-
 
 SUPPORTED_POLLUTANTS = {"pm25", "pm10", "so2", "no2", "co", "o3"}
 logger = logging.getLogger(__name__)
@@ -166,7 +165,10 @@ def fetch_indonesia_air_quality(source: str = "auto") -> tuple[list[dict], dict]
     timeout_seconds = int(os.getenv("DATA_TIMEOUT_SECONDS", "8"))
 
     if selected == "synthetic":
-        return fetch_synthetic_indonesia_air_quality(), {"selected_source": "synthetic", "fallback_used": False}
+        return fetch_synthetic_indonesia_air_quality(), {
+            "selected_source": "synthetic",
+            "fallback_used": False,
+        }
 
     if selected == "waqi":
         data = fetch_waqi_indonesia_air_quality(
@@ -183,4 +185,7 @@ def fetch_indonesia_air_quality(source: str = "auto") -> tuple[list[dict], dict]
     except Exception:
         logger.exception("Failed to fetch WAQI data. Falling back to synthetic source.")
 
-    return fetch_synthetic_indonesia_air_quality(), {"selected_source": "synthetic", "fallback_used": True}
+    return fetch_synthetic_indonesia_air_quality(), {
+        "selected_source": "synthetic",
+        "fallback_used": True,
+    }

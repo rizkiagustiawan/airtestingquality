@@ -66,7 +66,9 @@ def calculate_ispu(parameter: str, concentration: float) -> dict:
         ispu_lo, ispu_hi, conc_lo, conc_hi = bp
         if conc_lo <= concentration <= conc_hi:
             # ISPU formula: I = ((I_a - I_b)/(X_a - X_b)) * (X_x - X_b) + I_b
-            ispu_val = ((ispu_hi - ispu_lo) / (conc_hi - conc_lo)) * (concentration - conc_lo) + ispu_lo
+            ispu_val = (
+                (ispu_hi - ispu_lo) / (conc_hi - conc_lo)
+            ) * (concentration - conc_lo) + ispu_lo
             ispu_rounded = round(ispu_val)
             category, color = get_ispu_category_and_color(ispu_rounded)
             return {"value": ispu_rounded, "category": category, "color": color}

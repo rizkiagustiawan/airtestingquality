@@ -60,7 +60,9 @@ def record_dashboard_snapshot(
     try:
         conn.execute(
             """
-            INSERT INTO refresh_events (timestamp, source, fallback_used, station_count, valid_rate_pct, total_flags)
+            INSERT INTO refresh_events (
+                timestamp, source, fallback_used, station_count, valid_rate_pct, total_flags
+            )
             VALUES (?, ?, ?, ?, ?, ?)
             """,
             (
@@ -87,7 +89,10 @@ def record_dashboard_snapshot(
                 conn.execute(
                     """
                     INSERT INTO station_measurements
-                    (timestamp, station_id, location, city, source, pollutant, value, is_cleaned, qa_flag_count, ispu_value, critical_parameter)
+                    (
+                        timestamp, station_id, location, city, source, pollutant, 
+                        value, is_cleaned, qa_flag_count, ispu_value, critical_parameter
+                    )
                     VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
                     """,
                     (
@@ -108,7 +113,10 @@ def record_dashboard_snapshot(
                 conn.execute(
                     """
                     INSERT INTO station_measurements
-                    (timestamp, station_id, location, city, source, pollutant, value, is_cleaned, qa_flag_count, ispu_value, critical_parameter)
+                    (
+                        timestamp, station_id, location, city, source, pollutant, 
+                        value, is_cleaned, qa_flag_count, ispu_value, critical_parameter
+                    )
                     VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
                     """,
                     (
@@ -138,7 +146,9 @@ def get_station_history(
     try:
         rows = conn.execute(
             """
-            SELECT timestamp, station_id, location, city, source, pollutant, value, is_cleaned, qa_flag_count, ispu_value, critical_parameter
+            SELECT 
+                timestamp, station_id, location, city, source, pollutant, 
+                value, is_cleaned, qa_flag_count, ispu_value, critical_parameter
             FROM station_measurements
             WHERE station_id = ? AND pollutant = ? AND (? = 0 OR is_cleaned = 1)
             ORDER BY timestamp DESC

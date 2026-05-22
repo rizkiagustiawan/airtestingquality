@@ -5,8 +5,8 @@ for visualization on a Leaflet map.
 """
 
 import math
-from emission_sources import get_source_by_id, EMISSION_SOURCES
 
+from emission_sources import EMISSION_SOURCES, get_source_by_id
 
 # Pasquill-Gifford dispersion coefficients (σy, σz as functions of downwind distance)
 # σ = a * x^b  (x in km, σ in m)
@@ -133,11 +133,41 @@ def compute_dispersion_grid(
 
     # Convert grid to GeoJSON features with concentration bands
     bands = [
-        {"min": 0.5, "max": 10, "color": "#10B981", "opacity": 0.15, "label": "< 10 ug/m3 (Low)"},
-        {"min": 10, "max": 50, "color": "#3B82F6", "opacity": 0.25, "label": "10-50 ug/m3 (Moderate)"},
-        {"min": 50, "max": 75, "color": "#F59E0B", "opacity": 0.35, "label": "50-75 ug/m3 (PP22 Limit)"},
-        {"min": 75, "max": 150, "color": "#EF4444", "opacity": 0.45, "label": "75-150 ug/m3 (Exceed)"},
-        {"min": 150, "max": 99999, "color": "#7C2D12", "opacity": 0.55, "label": "> 150 ug/m3 (Critical)"},
+        {
+            "min": 0.5,
+            "max": 10,
+            "color": "#10B981",
+            "opacity": 0.15,
+            "label": "< 10 ug/m3 (Low)",
+        },
+        {
+            "min": 10,
+            "max": 50,
+            "color": "#3B82F6",
+            "opacity": 0.25,
+            "label": "10-50 ug/m3 (Moderate)",
+        },
+        {
+            "min": 50,
+            "max": 75,
+            "color": "#F59E0B",
+            "opacity": 0.35,
+            "label": "50-75 ug/m3 (PP22 Limit)",
+        },
+        {
+            "min": 75,
+            "max": 150,
+            "color": "#EF4444",
+            "opacity": 0.45,
+            "label": "75-150 ug/m3 (Exceed)",
+        },
+        {
+            "min": 150,
+            "max": 99999,
+            "color": "#7C2D12",
+            "opacity": 0.55,
+            "label": "> 150 ug/m3 (Critical)",
+        },
     ]
 
     features = []
