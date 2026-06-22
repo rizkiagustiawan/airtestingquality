@@ -25,6 +25,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from forecast_engine import predict_aq_trends
+from forecast_engine_v2 import predict_aq_trends_v2
+from health_impact import assess_health_impact, get_risk_summary
+from ispu_classifier import classify_ispu
+from qa_qc_v2 import run_qaqc_v2
+from source_apportionment import (
+    compute_bivariate_polar,
+    compute_pollution_rose,
+    estimate_local_regional_split,
+)
 from governance import (
     append_audit_event,
     load_station_history,
@@ -590,6 +599,150 @@ def api_report_historical(
         media_type=mime,
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+# ──────────────────────────────────────────────────────────────────────
+# New scientifically-backed endpoints (based on research papers)
+# ──────────────────────────────────────────────────────────────────────
+
+
+@app.get("/api/forecast/v2")
+def api_forecast_v2(hours: int = Query(24, ge=1, le=72)) -> dict:
+    """
+    Enhanced air quality forecasting using hybrid decomposition + meteorological model.
+
+    Scientific basis:
+    - Du et al. (2019) - Deep air quality forecasting using hybrid deep learning framework
+    - Freeman et al. (2018) - Forecasting air quality time series using deep learning
+    - Qiao et al. (2019) - The Forecasting of PM2.5 Using a Hybrid Model
+    """
+    return predict_aq_trends_v2(hours=hours)
+
+
+@app.get("/api/ispu/classify")
+def api_ispu_classify(
+    pm10: float = Query(0, ge=0),
+    pm25: float = Query(0, ge=0),
+    so2: float = Query(0, ge=0),
+    no2: float = Query(0, ge=0),
+    co: float = Query(0, ge=0),
+) -> dict:
+    """
+    ML-based ISPU category classification using SVM with RBF kernel.
+
+    Scientific basis:
+    - Ridho & Mahalisa (2023) - SVM for ISPU classification
+    - Sajiwo & Rahmat (2024) - XGBoost+SMOTE for ISPU classification
+    """
+    return classify_ispu(pm10, pm25, so2, no2, co)
+
+
+@app.get("/api/health-impact")
+def api_health_impact(
+    source: str = Query(settings.DATA_SOURCE),
+) -> dict:
+    """
+    Health impact assessment using WHO AirQ+ methodology.
+
+    Scientific basis:
+    - Conti et al. (2017) - A review of AirQ Models - 164 citations
+    - Liu et al. (2019) - PM2.5 and Daily Mortality - 1,667 citations
+    - Chen et al. (2020) - Long-term PM exposure and mortality - 1,021 citations
+    - WHO (2021) Global Air Quality Guidelines
+    """
+    try:
+        stations_data, _ = fetch_indonesia_air_quality(source=source)
+        # Aggregate measurements across stations
+        agg = {}
+        for st in stations_data:
+            for p, v in st.get("measurements", {}).items():
+                if p not in agg:
+                    agg[p] = []
+                agg[p].append(float(v))
+        # Use mean concentrations
+        mean_measurements = {p: round(sum(v) / len(v), 2) for p, v in agg.items() if v}
+        return assess_health_impact(mean_measurements)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Health Impact Error: {exc}")
+
+
+@app.get("/api/health-impact/summary")
+def api_health_impact_summary(
+    source: str = Query(settings.DATA_SOURCE),
+) -> dict:
+    """Quick health risk summary for dashboard display."""
+    try:
+        stations_data, _ = fetch_indonesia_air_quality(source=source)
+        agg = {}
+        for st in stations_data:
+            for p, v in st.get("measurements", {}).items():
+                if p not in agg:
+                    agg[p] = []
+                agg[p].append(float(v))
+        mean_measurements = {p: round(sum(v) / len(v), 2) for p, v in agg.items() if v}
+        return get_risk_summary(mean_measurements)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Risk Summary Error: {exc}")
+
+
+@app.get("/api/openair/source-apportionment")
+def api_source_apportionment(
+    pollutant: str = Query("pm10", pattern="^(pm10|pm25|so2|no2|co)$"),
+) -> dict:
+    """
+    Bivariate polar plot for source apportionment analysis.
+
+    Scientific basis:
+    - Demirarslan & Zeybek (2022) - Bivariate polar plot source determination - 9 citations
+    - Grange (2019) - OpenAir data analytic approaches - PhD thesis
+    - Agustine et al. (2017) - OpenAir R package application - 27 citations
+    """
+    return compute_bivariate_polar(pollutant=pollutant)
+
+
+@app.get("/api/openair/pollution-rose")
+def api_pollution_rose(
+    pollutant: str = Query("pm10", pattern="^(pm10|pm25|so2|no2|co)$"),
+) -> dict:
+    """
+    Pollution rose: concentration-weighted wind direction analysis.
+
+    Based on OpenAir R package methodology.
+    """
+    return compute_pollution_rose(pollutant=pollutant)
+
+
+@app.get("/api/openair/local-regional-split")
+def api_local_regional(
+    pollutant: str = Query("pm10", pattern="^(pm10|pm25|so2|no2|co)$"),
+) -> dict:
+    """
+    Estimate local vs regional contribution using wind speed stratification.
+
+    Scientific basis:
+    - Grange (2019) - OpenAir methodology for source identification
+    - Demirarslan & Zeybek (2022) - Polar plot source apportionment
+    """
+    return estimate_local_regional_split(pollutant=pollutant)
+
+
+@app.get("/api/qaqc/v2")
+def api_qaqc_v2(
+    source: str = Query(settings.DATA_SOURCE),
+) -> dict:
+    """
+    Enhanced QA/QC using SaQC framework with automated quality control.
+
+    Scientific basis:
+    - Schmidt et al. (2023) - System for automated Quality Control (SaQC) - 44 citations
+    - Faybishenko et al. (2022) - QA/QC of meteorological time series - 65 citations
+    """
+    try:
+        stations_data, _ = fetch_indonesia_air_quality(source=source)
+        processed, summary = run_qaqc_v2(stations_data)
+        return {"status": "success", "summary": summary, "stations": processed}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"QA/QC v2 Error: {exc}")
 
 
 app.mount("/app", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
