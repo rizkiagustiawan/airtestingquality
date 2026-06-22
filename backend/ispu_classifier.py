@@ -51,10 +51,34 @@ def _generate_diverse_training_data(n_samples: int = 3000) -> tuple[np.ndarray, 
     # All 5 categories with realistic concentration ranges
     category_ranges = {
         0: {"pm10": (5, 50), "pm25": (2, 15.5), "so2": (2, 52), "no2": (2, 80), "co": (100, 4000)},
-        1: {"pm10": (51, 150), "pm25": (16, 55), "so2": (53, 180), "no2": (81, 200), "co": (4001, 8000)},
-        2: {"pm10": (151, 350), "pm25": (56, 150), "so2": (181, 400), "no2": (201, 1130), "co": (8001, 15000)},
-        3: {"pm10": (351, 420), "pm25": (151, 250), "so2": (401, 800), "no2": (1131, 2260), "co": (15001, 30000)},
-        4: {"pm10": (421, 550), "pm25": (251, 400), "so2": (801, 1100), "no2": (2261, 2900), "co": (30001, 44000)},
+        1: {
+            "pm10": (51, 150),
+            "pm25": (16, 55),
+            "so2": (53, 180),
+            "no2": (81, 200),
+            "co": (4001, 8000),
+        },
+        2: {
+            "pm10": (151, 350),
+            "pm25": (56, 150),
+            "so2": (181, 400),
+            "no2": (201, 1130),
+            "co": (8001, 15000),
+        },
+        3: {
+            "pm10": (351, 420),
+            "pm25": (151, 250),
+            "so2": (401, 800),
+            "no2": (1131, 2260),
+            "co": (15001, 30000),
+        },
+        4: {
+            "pm10": (421, 550),
+            "pm25": (251, 400),
+            "so2": (801, 1100),
+            "no2": (2261, 2900),
+            "co": (30001, 44000),
+        },
     }
 
     # BALANCED distribution: equal samples per category
@@ -77,7 +101,13 @@ def _generate_diverse_training_data(n_samples: int = 3000) -> tuple[np.ndarray, 
             co += np.random.normal(0, co * 0.05)
 
             # Ensure positive
-            pm10, pm25, so2, no2, co = max(1, pm10), max(1, pm25), max(1, so2), max(1, no2), max(1, co)
+            pm10, pm25, so2, no2, co = (
+                max(1, pm10),
+                max(1, pm25),
+                max(1, so2),
+                max(1, no2),
+                max(1, co),
+            )
 
             # Temporal features
             hour = np.random.randint(0, 24)
@@ -90,23 +120,33 @@ def _generate_diverse_training_data(n_samples: int = 3000) -> tuple[np.ndarray, 
     # Add boundary samples (hard cases near category boundaries)
     boundary_cases = [
         # Near Baik/Sedang boundary
-        (48, 14, 50, 75, 3800, 0), (52, 16, 54, 82, 4200, 1),
+        (48, 14, 50, 75, 3800, 0),
+        (52, 16, 54, 82, 4200, 1),
         # Near Sedang/Tidak Sehat boundary
-        (145, 53, 175, 195, 7800, 1), (155, 57, 185, 205, 8200, 2),
+        (145, 53, 175, 195, 7800, 1),
+        (155, 57, 185, 205, 8200, 2),
         # Near Tidak Sehat/Sangat Tidak Sehat boundary
-        (345, 148, 395, 1125, 14800, 2), (355, 152, 405, 1135, 15200, 3),
+        (345, 148, 395, 1125, 14800, 2),
+        (355, 152, 405, 1135, 15200, 3),
         # Near Sangat Tidak Sehat/Berbahaya boundary
-        (415, 248, 795, 2255, 29800, 3), (425, 252, 805, 2265, 30200, 4),
+        (415, 248, 795, 2255, 29800, 3),
+        (425, 252, 805, 2265, 30200, 4),
     ]
 
     for pm10, pm25, so2, no2, co, cat_idx in boundary_cases:
         for _ in range(20):  # Repeat boundary cases
             noise = np.random.normal(0, 0.02, 5)
-            features.append([
-                pm10 * (1 + noise[0]), pm25 * (1 + noise[1]),
-                so2 * (1 + noise[2]), no2 * (1 + noise[3]),
-                co * (1 + noise[4]), 0.5, 0.5
-            ])
+            features.append(
+                [
+                    pm10 * (1 + noise[0]),
+                    pm25 * (1 + noise[1]),
+                    so2 * (1 + noise[2]),
+                    no2 * (1 + noise[3]),
+                    co * (1 + noise[4]),
+                    0.5,
+                    0.5,
+                ]
+            )
             labels.append(cat_idx)
 
     return np.array(features), np.array(labels)
@@ -182,12 +222,15 @@ class ISPUClassifierV2:
         # Apply SMOTE if class imbalance detected
         try:
             from imblearn.over_sampling import SMOTE
+
             class_counts = np.bincount(y.astype(int))
             max_count = max(class_counts)
             min_count = min(c for c in class_counts if c > 0)
 
             if max_count / max(min_count, 1) > 2:  # Significant imbalance
-                smote = SMOTE(random_state=42, k_neighbors=min(5, min_count - 1) if min_count > 1 else 1)
+                smote = SMOTE(
+                    random_state=42, k_neighbors=min(5, min_count - 1) if min_count > 1 else 1
+                )
                 X, y = smote.fit_resample(X, y)
                 self._data_source += "+smote"
                 self._n_samples = len(X)
@@ -200,26 +243,26 @@ class ISPUClassifierV2:
 
         # Train SVM (RBF kernel)
         self._svm_model = SVC(
-            kernel="rbf", C=10.0, gamma="scale",
-            probability=True, random_state=42
+            kernel="rbf", C=10.0, gamma="scale", probability=True, random_state=42
         )
         self._svm_model.fit(X_scaled, y)
 
         # Train Random Forest
-        self._rf_model = RandomForestClassifier(
-            n_estimators=100, max_depth=10, random_state=42
-        )
+        self._rf_model = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
         self._rf_model.fit(X_scaled, y)
 
         # Train XGBoost
         self._xgb_model = XGBClassifier(
-            n_estimators=100, max_depth=6, learning_rate=0.1,
-            random_state=42, use_label_encoder=False, eval_metric="mlogloss"
+            n_estimators=100,
+            max_depth=6,
+            learning_rate=0.1,
+            random_state=42,
+            use_label_encoder=False,
+            eval_metric="mlogloss",
         )
         self._xgb_model.fit(X_scaled, y)
 
         # Cross-validation accuracy (using ensemble)
-        from sklearn.model_selection import cross_val_score
         cv_scores = cross_val_score(self._svm_model, X_scaled, y, cv=5, scoring="accuracy")
         self._train_accuracy = float(np.mean(cv_scores))
 
@@ -253,9 +296,9 @@ class ISPUClassifierV2:
 
         # Weighted ensemble
         ensemble_proba = (
-            self._model_weights[0] * svm_mapped +
-            self._model_weights[1] * rf_mapped +
-            self._model_weights[2] * xgb_mapped
+            self._model_weights[0] * svm_mapped
+            + self._model_weights[1] * rf_mapped
+            + self._model_weights[2] * xgb_mapped
         )
 
         # Normalize
@@ -266,8 +309,7 @@ class ISPUClassifierV2:
         confidence = float(ensemble_proba[predicted_idx])
 
         probabilities = {
-            self._category_names[i]: round(float(ensemble_proba[i]), 3)
-            for i in range(5)
+            self._category_names[i]: round(float(ensemble_proba[i]), 3) for i in range(5)
         }
 
         # Individual model predictions
@@ -276,9 +318,7 @@ class ISPUClassifierV2:
         xgb_pred = int(np.argmax(xgb_mapped))
 
         # Breakpoint-based ISPU (ground truth)
-        bp_result = get_overall_ispu({
-            "pm10": pm10, "pm25": pm25, "so2": so2, "no2": no2, "co": co
-        })
+        bp_result = get_overall_ispu({"pm10": pm10, "pm25": pm25, "so2": so2, "no2": no2, "co": co})
         bp_category_idx = _get_category_idx(bp_result["value"] or 0)
         ml_bp_agree = predicted_idx == bp_category_idx
 

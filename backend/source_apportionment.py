@@ -52,9 +52,7 @@ def _get_sector_label(deg: float) -> str:
         return "NW"
 
 
-def _simulate_concentration(
-    wd: float, ws: float, base: float, source_dir: float
-) -> float:
+def _simulate_concentration(wd: float, ws: float, base: float, source_dir: float) -> float:
     """Simulate pollutant concentration based on wind and source direction."""
     dir_diff = abs(wd - source_dir)
     if dir_diff > 180:
@@ -101,15 +99,12 @@ def compute_bivariate_polar(
     # Speed bins
     speed_edges = np.linspace(0, 10, n_speed_bins + 1)
     speed_labels = [
-        f"{speed_edges[i]:.0f}-{speed_edges[i+1]:.0f} m/s"
-        for i in range(n_speed_bins)
+        f"{speed_edges[i]:.0f}-{speed_edges[i + 1]:.0f} m/s" for i in range(n_speed_bins)
     ]
 
     # Direction sectors
     sector_width = 360 / n_direction_sectors
-    sector_labels = [
-        _get_sector_label(i * sector_width) for i in range(n_direction_sectors)
-    ]
+    sector_labels = [_get_sector_label(i * sector_width) for i in range(n_direction_sectors)]
 
     # Accumulate concentrations in each (direction, speed) cell
     cell_values = defaultdict(list)
@@ -139,11 +134,13 @@ def compute_bivariate_polar(
         for s in range(n_speed_bins):
             vals = cell_values.get((d, s), [])
             if vals:
-                row.append({
-                    "mean_conc": round(float(np.mean(vals)), 2),
-                    "count": len(vals),
-                    "std": round(float(np.std(vals)), 2),
-                })
+                row.append(
+                    {
+                        "mean_conc": round(float(np.mean(vals)), 2),
+                        "count": len(vals),
+                        "std": round(float(np.std(vals)), 2),
+                    }
+                )
             else:
                 row.append({"mean_conc": 0, "count": 0, "std": 0})
         polar_grid.append(row)
@@ -155,21 +152,25 @@ def compute_bivariate_polar(
         for s in range(n_speed_bins):
             all_conc.extend(cell_values.get((d, s), []))
         if all_conc:
-            pollution_rose.append({
-                "sector": sector_labels[d],
-                "direction_deg": round(d * sector_width, 1),
-                "mean_concentration": round(float(np.mean(all_conc)), 2),
-                "max_concentration": round(float(np.max(all_conc)), 2),
-                "count": len(all_conc),
-            })
+            pollution_rose.append(
+                {
+                    "sector": sector_labels[d],
+                    "direction_deg": round(d * sector_width, 1),
+                    "mean_concentration": round(float(np.mean(all_conc)), 2),
+                    "max_concentration": round(float(np.max(all_conc)), 2),
+                    "count": len(all_conc),
+                }
+            )
         else:
-            pollution_rose.append({
-                "sector": sector_labels[d],
-                "direction_deg": round(d * sector_width, 1),
-                "mean_concentration": 0,
-                "max_concentration": 0,
-                "count": 0,
-            })
+            pollution_rose.append(
+                {
+                    "sector": sector_labels[d],
+                    "direction_deg": round(d * sector_width, 1),
+                    "mean_concentration": 0,
+                    "max_concentration": 0,
+                    "count": 0,
+                }
+            )
 
     # Source identification: find dominant source direction
     max_conc_dir = max(pollution_rose, key=lambda x: x["mean_concentration"])
@@ -231,10 +232,9 @@ def compute_bivariate_polar(
             "medium_speed_pct": medium_pct,
             "high_speed_pct": regional_pct,
             "interpretation": {
-                "local": "High concentration at low wind speeds "
-                         "suggests nearby emission sources",
+                "local": "High concentration at low wind speeds suggests nearby emission sources",
                 "regional": "High concentration at high wind speeds "
-                            "suggests distant/regional transport",
+                "suggests distant/regional transport",
                 "mixed": "Both local and regional contributions detected",
             }.get(dominant_source, ""),
         },
@@ -243,10 +243,8 @@ def compute_bivariate_polar(
         "scientific_basis": [
             "Demirarslan & Zeybek (2022) - Bivariate polar plot for source "
             "apportionment - 9 citations",
-            "Grange (2019) - Data Analytic Approaches for Air Quality Data "
-            "(OpenAir) - PhD thesis",
-            "Agustine et al. (2017) - Application of open air model "
-            "(R package) - 27 citations",
+            "Grange (2019) - Data Analytic Approaches for Air Quality Data (OpenAir) - PhD thesis",
+            "Agustine et al. (2017) - Application of open air model (R package) - 27 citations",
             "Rowland (2024) - Analysis of meteorological parameters and "
             "pollutant concentrations - 24 citations",
         ],

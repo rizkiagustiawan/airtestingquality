@@ -186,7 +186,7 @@ def _require_admin_key(request: Request) -> None:
 
 @app.get("/api/dashboard-data")
 def get_dashboard_data(
-    source: str = Query(settings.DATA_SOURCE, pattern="^(auto|synthetic|waqi)$")
+    source: str = Query(settings.DATA_SOURCE, pattern="^(auto|synthetic|waqi)$"),
 ) -> dict:
     """Fetches telemetry, calculates ISPU, and evaluates compliance limits."""
     try:
@@ -286,9 +286,9 @@ def api_data_quality() -> dict:
     stale_count = sum(1 for item in per_station if item["is_stale"])
     STALE_STATIONS.set(stale_count)
     station_count = len(per_station)
-    availability_pct = round(
-        100.0 * (station_count - stale_count) / station_count, 2
-    ) if station_count else 0.0
+    availability_pct = (
+        round(100.0 * (station_count - stale_count) / station_count, 2) if station_count else 0.0
+    )
     return {
         "status": "success",
         "last_refresh": _LATEST_DASHBOARD_META.get("last_refresh"),
@@ -372,9 +372,7 @@ def api_dispatch_alerts_internal(request: Request, dispatch_key: str = Query("")
     request_host = request.client.host if request.client else None
     # Internal dispatch is intended for private network callers such as Alertmanager.
     # When a dispatch key is configured, external callers must provide it.
-    if required and not (
-        dispatch_key == required or is_trusted_request_host(request_host)
-    ):
+    if required and not (dispatch_key == required or is_trusted_request_host(request_host)):
         raise HTTPException(status_code=401, detail="Invalid or missing alert dispatch key")
     payload = api_alerts()
     outcomes = send_alerts(payload["alerts"])
@@ -551,8 +549,7 @@ def api_forecast(hours: int = Query(24, ge=1, le=72)) -> dict:
 
 @app.get("/api/reports/summary")
 def api_report_summary(
-    format: str = Query("json", pattern="^(json|csv)$"),
-    source: str = Query(settings.DATA_SOURCE)
+    format: str = Query("json", pattern="^(json|csv)$"), source: str = Query(settings.DATA_SOURCE)
 ) -> Response:
     """Generates a downloadable summary report of current quality."""
     try:
@@ -560,19 +557,19 @@ def api_report_summary(
         stations_data, qaqc_summary = run_qaqc(
             stations_data, previous_by_station=_PREVIOUS_MEASUREMENTS_BY_STATION
         )
-        
+
         # Enrich with ISPU
         for st in stations_data:
             st["ispu"] = get_overall_ispu(st.get("measurements", {}))
-            
+
         content, mime = generate_summary_report(stations_data, qaqc_summary, format=format)
         now_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
         filename = f"air_quality_summary_{now_str}.{format}"
-        
+
         return Response(
             content=content,
             media_type=mime,
-            headers={"Content-Disposition": f"attachment; filename={filename}"}
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Report Generation Error: {exc}")
@@ -582,7 +579,7 @@ def api_report_summary(
 def api_report_historical(
     station_id: str = Query(..., min_length=1),
     pollutant: str = Query(..., pattern="^(pm10|pm25|so2|no2|co|o3)$"),
-    limit: int = Query(500, ge=1, le=5000)
+    limit: int = Query(500, ge=1, le=5000),
 ) -> Response:
     """Generates a historical trend CSV report for a station."""
     rows = get_station_history(
@@ -590,21 +587,21 @@ def api_report_historical(
         station_id=station_id,
         pollutant=pollutant,
         cleaned_only=True,
-        limit=limit
+        limit=limit,
     )
     if not rows:
         raise HTTPException(
             status_code=404, detail="No historical data found for the given criteria"
         )
-        
+
     content, mime = compile_historical_report(rows, station_id, pollutant)
     now_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     filename = f"history_{station_id}_{pollutant}_{now_str}.csv"
-    
+
     return Response(
         content=content,
         media_type=mime,
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
 

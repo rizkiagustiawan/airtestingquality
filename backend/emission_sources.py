@@ -25,10 +25,10 @@ EMISSION_SOURCES = [
             "tsp": 15.0,
             "so2": 0.0,
             "nox": 0.5,
-            "co": 1.2
+            "co": 1.2,
         },
         "stack_height_m": 0,
-        "color": "#D97706"
+        "color": "#D97706",
     },
     {
         "id": "crusher-plant",
@@ -40,16 +40,9 @@ EMISSION_SOURCES = [
         "elevation_m": 280,
         "description": "Primary and secondary ore crushing facility",
         "area_m2": 20000,
-        "emissions": {
-            "pm10": 12.0,
-            "pm25": 3.5,
-            "tsp": 22.0,
-            "so2": 0.0,
-            "nox": 0.3,
-            "co": 0.8
-        },
+        "emissions": {"pm10": 12.0, "pm25": 3.5, "tsp": 22.0, "so2": 0.0, "nox": 0.3, "co": 0.8},
         "stack_height_m": 0,
-        "color": "#92400E"
+        "color": "#92400E",
     },
     {
         "id": "smelter-stack",
@@ -61,19 +54,12 @@ EMISSION_SOURCES = [
         "elevation_m": 120,
         "description": "Copper smelter main exhaust stack (80m tall)",
         "area_m2": 0,
-        "emissions": {
-            "pm10": 2.5,
-            "pm25": 1.8,
-            "tsp": 3.0,
-            "so2": 25.0,
-            "nox": 8.5,
-            "co": 5.2
-        },
+        "emissions": {"pm10": 2.5, "pm25": 1.8, "tsp": 3.0, "so2": 25.0, "nox": 8.5, "co": 5.2},
         "stack_height_m": 80,
         "stack_diameter_m": 3.5,
         "exit_velocity_ms": 18.0,
         "exit_temp_k": 423,
-        "color": "#DC2626"
+        "color": "#DC2626",
     },
     {
         "id": "hauling-road",
@@ -86,16 +72,9 @@ EMISSION_SOURCES = [
         "description": "Heavy vehicle haul road (approx 15 km network)",
         "length_m": 15000,
         "area_m2": 150000,
-        "emissions": {
-            "pm10": 18.0,
-            "pm25": 4.0,
-            "tsp": 35.0,
-            "so2": 0.0,
-            "nox": 3.5,
-            "co": 8.0
-        },
+        "emissions": {"pm10": 18.0, "pm25": 4.0, "tsp": 35.0, "so2": 0.0, "nox": 3.5, "co": 8.0},
         "stack_height_m": 0,
-        "color": "#F59E0B"
+        "color": "#F59E0B",
     },
     {
         "id": "stockpile",
@@ -107,16 +86,9 @@ EMISSION_SOURCES = [
         "elevation_m": 250,
         "description": "Ore and waste rock stockpile with wind erosion",
         "area_m2": 80000,
-        "emissions": {
-            "pm10": 5.0,
-            "pm25": 1.2,
-            "tsp": 10.0,
-            "so2": 0.0,
-            "nox": 0.0,
-            "co": 0.0
-        },
+        "emissions": {"pm10": 5.0, "pm25": 1.2, "tsp": 10.0, "so2": 0.0, "nox": 0.0, "co": 0.0},
         "stack_height_m": 0,
-        "color": "#78716C"
+        "color": "#78716C",
     },
     {
         "id": "power-plant",
@@ -128,19 +100,12 @@ EMISSION_SOURCES = [
         "elevation_m": 50,
         "description": "450 MW Combined Cycle LNG power generation",
         "area_m2": 0,
-        "emissions": {
-            "pm10": 0.8,
-            "pm25": 0.5,
-            "tsp": 1.0,
-            "so2": 2.0,
-            "nox": 12.0,
-            "co": 3.5
-        },
+        "emissions": {"pm10": 0.8, "pm25": 0.5, "tsp": 1.0, "so2": 2.0, "nox": 12.0, "co": 3.5},
         "stack_height_m": 60,
         "stack_diameter_m": 2.8,
         "exit_velocity_ms": 15.0,
         "exit_temp_k": 393,
-        "color": "#7C3AED"
+        "color": "#7C3AED",
     },
     {
         "id": "port-facility",
@@ -152,17 +117,10 @@ EMISSION_SOURCES = [
         "elevation_m": 5,
         "description": "Concentrate loading and ship berthing area",
         "area_m2": 40000,
-        "emissions": {
-            "pm10": 3.0,
-            "pm25": 0.8,
-            "tsp": 6.0,
-            "so2": 0.5,
-            "nox": 1.5,
-            "co": 2.0
-        },
+        "emissions": {"pm10": 3.0, "pm25": 0.8, "tsp": 6.0, "so2": 0.5, "nox": 1.5, "co": 2.0},
         "stack_height_m": 0,
-        "color": "#0891B2"
-    }
+        "color": "#0891B2",
+    },
 ]
 
 # Sensitive receptor locations around the mining complex
@@ -231,6 +189,7 @@ def get_source_by_id(source_id: str):
 def get_total_emissions():
     """Calculate total emissions from all sources (g/s)."""
     import typing
+
     totals: dict[str, float] = {}
     for src in EMISSION_SOURCES:
         emissions = typing.cast(dict[str, float], src.get("emissions", {}))

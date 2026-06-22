@@ -43,7 +43,7 @@ def _mixing_height(hour: int, stability: str) -> float:
 def generate_met_timeseries(hours: int = 72, future: bool = False) -> list[dict]:
     """
     Generate hourly meteorological data simulating Sumbawa tropical conditions.
-    
+
     If future=True, generates data starting from current time into the future.
     If future=False, generates data for the past X hours ending at current time.
     """
@@ -55,7 +55,7 @@ def generate_met_timeseries(hours: int = 72, future: bool = False) -> list[dict]
             t = now + timedelta(hours=i)
         else:
             t = now - timedelta(hours=hours - i)
-            
+
         hour = t.hour
 
         # --- Wind Direction (sea-land breeze cycle) ---
@@ -100,17 +100,19 @@ def generate_met_timeseries(hours: int = 72, future: bool = False) -> list[dict]
         # --- Pressure ---
         pressure = 1012 + random.gauss(0, 1.5)
 
-        data.append({
-            "timestamp": t.isoformat() + "Z",
-            "hour": hour,
-            "wind_speed_ms": round(ws, 2),
-            "wind_direction_deg": round(wd, 1),
-            "temperature_c": round(temp, 1),
-            "relative_humidity_pct": round(rh, 1),
-            "pressure_hpa": round(pressure, 1),
-            "stability_class": stability,
-            "mixing_height_m": round(mix_h, 1)
-        })
+        data.append(
+            {
+                "timestamp": t.isoformat() + "Z",
+                "hour": hour,
+                "wind_speed_ms": round(ws, 2),
+                "wind_direction_deg": round(wd, 1),
+                "temperature_c": round(temp, 1),
+                "relative_humidity_pct": round(rh, 1),
+                "pressure_hpa": round(pressure, 1),
+                "stability_class": stability,
+                "mixing_height_m": round(mix_h, 1),
+            }
+        )
 
     return data
 
@@ -134,8 +136,24 @@ def get_wind_rose_data(met_data: list[dict] | None = None) -> dict:
         {"label": ">7 m/s", "min": 7, "max": 999, "color": "#1E3A8A"},
     ]
 
-    sector_labels = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-                     "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+    sector_labels = [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+    ]
 
     # Initialize frequency counts
     freq: list[list[int]] = [[0] * len(speed_bins) for _ in range(n_sectors)]
@@ -191,7 +209,7 @@ def get_polar_plot_data(pollutant: str = "pm10", met_data: list[dict] | None = N
             dir_diff = 360 - dir_diff
 
         # Gaussian-like directional enhancement
-        dir_factor = math.exp(-(dir_diff ** 2) / (2 * 60 ** 2))
+        dir_factor = math.exp(-(dir_diff**2) / (2 * 60**2))
 
         # Base concentration depends on wind speed (moderate wind = most transport)
         speed_factor = ws * math.exp(-ws / 5)
@@ -203,16 +221,14 @@ def get_polar_plot_data(pollutant: str = "pm10", met_data: list[dict] | None = N
         conc += random.gauss(0, base * 0.05)
         conc = max(0, conc)
 
-        points.append({
-            "wind_dir": round(wd, 1),
-            "wind_speed": round(ws, 2),
-            "concentration": round(conc, 2)
-        })
+        points.append(
+            {"wind_dir": round(wd, 1), "wind_speed": round(ws, 2), "concentration": round(conc, 2)}
+        )
 
     return {
         "pollutant": pollutant,
         "unit": "µg/m³" if pollutant != "co" else "µg/m³",
-        "points": points
+        "points": points,
     }
 
 
@@ -242,14 +258,6 @@ def get_timeseries_data(met_data: list[dict] | None = None) -> dict:
             val = base * activity_factor * wind_factor + random.gauss(0, base * 0.08)
             val = max(0, val)
 
-            series[p].append({
-                "timestamp": rec["timestamp"],
-                "value": round(val, 2)
-            })
+            series[p].append({"timestamp": rec["timestamp"], "value": round(val, 2)})
 
-    return {
-        "pollutants": pollutants,
-        "units": {p: "µg/m³" for p in pollutants},
-        "series": series
-    }
-
+    return {"pollutants": pollutants, "units": {p: "µg/m³" for p in pollutants}, "series": series}

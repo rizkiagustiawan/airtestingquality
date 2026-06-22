@@ -145,9 +145,7 @@ def _met_adjustment(
     return concentration * ws_factor * stab_factor * mh_factor * dir_factor
 
 
-def _clamp_rate_of_change(
-    current: float, previous: float, max_change_pct: float = 0.12
-) -> float:
+def _clamp_rate_of_change(current: float, previous: float, max_change_pct: float = 0.12) -> float:
     """Clamp hourly change to prevent unrealistic jumps."""
     if previous <= 0:
         return current
@@ -239,22 +237,24 @@ def predict_aq_trends_v2(hours: int = 24) -> dict:
                 highest_ispu = res["value"]
                 critical_p = p
 
-        predictions.append({
-            "timestamp": met["timestamp"],
-            "hour": hour,
-            "metrics": hour_metrics,
-            "ispu": {
-                "value": highest_ispu,
-                "critical_parameter": critical_p,
-                "category": calculate_ispu(critical_p, hour_metrics[critical_p])["category"],
-            },
-            "met": {
-                "wind_speed": ws,
-                "wind_direction": wd,
-                "stability": stability,
-                "mixing_height": mh,
-            },
-        })
+        predictions.append(
+            {
+                "timestamp": met["timestamp"],
+                "hour": hour,
+                "metrics": hour_metrics,
+                "ispu": {
+                    "value": highest_ispu,
+                    "critical_parameter": critical_p,
+                    "category": calculate_ispu(critical_p, hour_metrics[critical_p])["category"],
+                },
+                "met": {
+                    "wind_speed": ws,
+                    "wind_direction": wd,
+                    "stability": stability,
+                    "mixing_height": mh,
+                },
+            }
+        )
 
     # Summary
     avg_metrics = {}

@@ -141,9 +141,10 @@ def load_ispu_training_data(
         ispu_val = data.get("_ispu")
         if ispu_val is None:
             from ispu_calculator import get_overall_ispu
-            ispu_result = get_overall_ispu({
-                "pm10": pm10, "pm25": pm25, "so2": so2, "no2": no2, "co": co
-            })
+
+            ispu_result = get_overall_ispu(
+                {"pm10": pm10, "pm25": pm25, "so2": so2, "no2": no2, "co": co}
+            )
             ispu_val = ispu_result.get("value", 0)
 
         # Map ISPU to category

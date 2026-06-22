@@ -12,11 +12,12 @@ from emission_sources import EMISSION_SOURCES
 
 
 def _advect_puff(
-    lat: float, lon: float,
+    lat: float,
+    lon: float,
     wind_dir_deg: float,
     wind_speed_ms: float,
     dt_s: float,
-    lat_ref: float = -8.82
+    lat_ref: float = -8.82,
 ) -> tuple[float, float]:
     """Advect a puff position by one time step."""
     # Wind blows FROM wind_dir, so puff moves TOWARDS (wind_dir + 180)
@@ -59,9 +60,7 @@ def _puff_sigma(travel_time_s: float, stability: str = "C") -> float:
 
 
 def compute_cumulative_plume(
-    duration_hours: int = 12,
-    dt_minutes: int = 30,
-    pollutant: str = "pm10"
+    duration_hours: int = 12, dt_minutes: int = 30, pollutant: str = "pm10"
 ) -> dict:
     """
     Returns GeoJSON for rendering the plume on Leaflet.
@@ -92,22 +91,22 @@ def compute_cumulative_plume(
             q = emissions_dict.get(emission_key, 0)
             if q <= 0:
                 continue
-            puffs.append({
-                "lat": src["lat"],
-                "lon": src["lon"],
-                "q": q * dt_s,  # total mass released in this interval (g)
-                "age_s": 0,
-                "source": src["id"]
-            })
+            puffs.append(
+                {
+                    "lat": src["lat"],
+                    "lon": src["lon"],
+                    "q": q * dt_s,  # total mass released in this interval (g)
+                    "age_s": 0,
+                    "source": src["id"],
+                }
+            )
 
         # Advect all puffs
         for puff in puffs:
             # Add some turbulent diffusion (random walk)
             wd_local = wd + random.gauss(0, 8)
             ws_local = ws * (0.9 + random.uniform(0, 0.2))
-            new_lat, new_lon = _advect_puff(
-                puff["lat"], puff["lon"], wd_local, ws_local, dt_s
-            )
+            new_lat, new_lon = _advect_puff(puff["lat"], puff["lon"], wd_local, ws_local, dt_s)
             puff["lat"] = new_lat
             puff["lon"] = new_lon
             puff["age_s"] += dt_s
@@ -160,21 +159,20 @@ def compute_cumulative_plume(
             plon = puff["lon"] + radius_lon * math.sin(angle)
             coords.append([round(plon, 6), round(plat, 6)])
 
-        features.append({
-            "type": "Feature",
-            "properties": {
-                "concentration": round(conc, 2),
-                "color": color,
-                "opacity": opacity,
-                "age_hours": round(puff["age_s"] / 3600, 1),
-                "source": puff["source"],
-                "sigma_m": int(sigma)
-            },
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": [coords]
+        features.append(
+            {
+                "type": "Feature",
+                "properties": {
+                    "concentration": round(conc, 2),
+                    "color": color,
+                    "opacity": opacity,
+                    "age_hours": round(puff["age_s"] / 3600, 1),
+                    "source": puff["source"],
+                    "sigma_m": int(sigma),
+                },
+                "geometry": {"type": "Polygon", "coordinates": [coords]},
             }
-        })
+        )
 
     # Sort by concentration so high-conc features render on top
     features.sort(key=lambda f: typing.cast(dict, f["properties"])["concentration"])
@@ -195,5 +193,5 @@ def compute_cumulative_plume(
         "total_puffs": len(features),
         "sources_count": len(EMISSION_SOURCES),
         "bands": bands,
-        "features": features
+        "features": features,
     }

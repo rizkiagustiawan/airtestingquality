@@ -3,12 +3,9 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Fallback to sqlite if DATABASE_URL is somehow not set locally, 
+# Fallback to sqlite if DATABASE_URL is somehow not set locally,
 # although in docker it will be set.
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "sqlite:///./airqgis.db"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./airqgis.db")
 
 # Use SQLite in memory if test environment or explicitly requested
 if DATABASE_URL.startswith("sqlite"):
@@ -19,6 +16,7 @@ else:
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
 
 def get_db():
     db = SessionLocal()

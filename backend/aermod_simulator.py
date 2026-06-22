@@ -33,13 +33,13 @@ def _sigma_z(x_km: float, stability: str) -> float:
 
 
 def _gaussian_conc(
-    q: float,         # emission rate (g/s)
-    u: float,         # wind speed (m/s)
-    x: float,         # downwind distance (m)
-    y: float,         # crosswind distance (m)
-    z: float,         # receptor height (m)
-    h: float,         # effective stack height (m)
-    stability: str
+    q: float,  # emission rate (g/s)
+    u: float,  # wind speed (m/s)
+    x: float,  # downwind distance (m)
+    y: float,  # crosswind distance (m)
+    z: float,  # receptor height (m)
+    h: float,  # effective stack height (m)
+    stability: str,
 ) -> float:
     """Calculate ground-level concentration (µg/m³) using Gaussian plume formula."""
     if x <= 0 or u <= 0.1:
@@ -53,9 +53,9 @@ def _gaussian_conc(
         return 0.0
 
     # Gaussian plume equation with ground reflection
-    exp_y = math.exp(-(y ** 2) / (2 * sy ** 2))
-    exp_z1 = math.exp(-((z - h) ** 2) / (2 * sz ** 2))
-    exp_z2 = math.exp(-((z + h) ** 2) / (2 * sz ** 2))
+    exp_y = math.exp(-(y**2) / (2 * sy**2))
+    exp_z1 = math.exp(-((z - h) ** 2) / (2 * sz**2))
+    exp_z2 = math.exp(-((z + h) ** 2) / (2 * sz**2))
 
     conc = (q * 1e6) / (2 * math.pi * u * sy * sz) * exp_y * (exp_z1 + exp_z2)
     return conc
@@ -64,11 +64,11 @@ def _gaussian_conc(
 def compute_dispersion_grid(
     source_id: str = "smelter-stack",
     pollutant: str = "pm10",
-    wind_dir: float = 230.0,       # deg, direction wind is blowing FROM
-    wind_speed: float = 3.5,       # m/s
+    wind_dir: float = 230.0,  # deg, direction wind is blowing FROM
+    wind_speed: float = 3.5,  # m/s
     stability: str = "C",
-    grid_size_m: float = 10000,    # total grid extent (m)
-    resolution: int = 40           # grid cells per side
+    grid_size_m: float = 10000,  # total grid extent (m)
+    resolution: int = 40,  # grid cells per side
 ) -> dict:
     """
     Compute a concentration grid for a single source and return as GeoJSON polygons
@@ -91,7 +91,9 @@ def compute_dispersion_grid(
     if source["type"] == "point":
         v_s = source.get("exit_velocity_ms", 10)
         d = source.get("stack_diameter_m", 2)
-        delta_h = (1.6 * (v_s * d) ** (1/3) * (3.5 * wind_speed) ** (2/3)) / max(wind_speed, 0.5)
+        delta_h = (1.6 * (v_s * d) ** (1 / 3) * (3.5 * wind_speed) ** (2 / 3)) / max(
+            wind_speed, 0.5
+        )
         effective_h = stack_h + min(delta_h, 200)
 
     # Wind direction: convert "from" to "towards" (add 180°)
@@ -121,15 +123,11 @@ def compute_dispersion_grid(
             crosswind = gx * cos_w - gy * sin_w
 
             conc = _gaussian_conc(q, wind_speed, downwind, crosswind, 0, effective_h, stability)
-            
+
             if conc > 0.5:  # threshold to avoid noise
                 cell_lat = src_lat + gy * lat_per_m
                 cell_lon = src_lon + gx * lon_per_m
-                grid.append({
-                    "lat": cell_lat,
-                    "lon": cell_lon,
-                    "conc": round(conc, 2)
-                })
+                grid.append({"lat": cell_lat, "lon": cell_lon, "conc": round(conc, 2)})
 
     # Convert grid to GeoJSON features with concentration bands
     bands = [
@@ -184,27 +182,28 @@ def compute_dispersion_grid(
             continue
 
         # Create cell polygon
-        coords = [[
-            [pt["lon"] - cell_half_lon, pt["lat"] - cell_half_lat],
-            [pt["lon"] + cell_half_lon, pt["lat"] - cell_half_lat],
-            [pt["lon"] + cell_half_lon, pt["lat"] + cell_half_lat],
-            [pt["lon"] - cell_half_lon, pt["lat"] + cell_half_lat],
-            [pt["lon"] - cell_half_lon, pt["lat"] - cell_half_lat],
-        ]]
+        coords = [
+            [
+                [pt["lon"] - cell_half_lon, pt["lat"] - cell_half_lat],
+                [pt["lon"] + cell_half_lon, pt["lat"] - cell_half_lat],
+                [pt["lon"] + cell_half_lon, pt["lat"] + cell_half_lat],
+                [pt["lon"] - cell_half_lon, pt["lat"] + cell_half_lat],
+                [pt["lon"] - cell_half_lon, pt["lat"] - cell_half_lat],
+            ]
+        ]
 
-        features.append({
-            "type": "Feature",
-            "properties": {
-                "concentration": pt["conc"],
-                "color": band["color"],
-                "opacity": band["opacity"],
-                "band_label": band["label"]
-            },
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": coords
+        features.append(
+            {
+                "type": "Feature",
+                "properties": {
+                    "concentration": pt["conc"],
+                    "color": band["color"],
+                    "opacity": band["opacity"],
+                    "band_label": band["label"],
+                },
+                "geometry": {"type": "Polygon", "coordinates": coords},
             }
-        })
+        )
 
     return {
         "type": "FeatureCollection",
@@ -216,5 +215,5 @@ def compute_dispersion_grid(
         "stability": stability,
         "effective_height_m": round(effective_h, 1),
         "bands": bands,
-        "features": features
+        "features": features,
     }

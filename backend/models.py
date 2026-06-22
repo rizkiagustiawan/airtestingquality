@@ -15,6 +15,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
 
+
 class Station(Base):
     __tablename__ = "stations"
     id = Column(Integer, primary_key=True, index=True)

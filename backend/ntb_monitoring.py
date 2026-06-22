@@ -171,6 +171,7 @@ def get_station_by_id(station_id: str) -> dict | None:
 # SPATIAL INTERPOLATION (IDW - Inverse Distance Weighting)
 # ============================================================
 
+
 def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
     Calculate distance between two points using Haversine formula.
@@ -247,7 +248,7 @@ def idw_interpolate(
                     break
 
                 if dist <= max_distance_km:
-                    weight = 1.0 / (dist ** power)
+                    weight = 1.0 / (dist**power)
                     numerator += weight * station["value"]
                     denominator += weight
 
@@ -256,13 +257,15 @@ def idw_interpolate(
             else:
                 interpolated_value = 0.0
 
-            grid_points.append({
-                "lat": round(lat, 4),
-                "lon": round(lon, 4),
-                "value": round(interpolated_value, 2),
-                "nearest_station": nearest_station["id"] if nearest_station else None,
-                "distance_to_nearest_km": round(nearest_dist, 1),
-            })
+            grid_points.append(
+                {
+                    "lat": round(lat, 4),
+                    "lon": round(lon, 4),
+                    "value": round(interpolated_value, 2),
+                    "nearest_station": nearest_station["id"] if nearest_station else None,
+                    "distance_to_nearest_km": round(nearest_dist, 1),
+                }
+            )
 
             lon += grid_resolution
         lat += grid_resolution
@@ -322,13 +325,15 @@ def generate_ntb_heatmap(
         if station["id"] in station_measurements:
             val = station_measurements[station["id"]].get(pollutant)
             if val is not None:
-                station_data.append({
-                    "id": station["id"],
-                    "name": station["name"],
-                    "lat": station["lat"],
-                    "lon": station["lon"],
-                    "value": float(val),
-                })
+                station_data.append(
+                    {
+                        "id": station["id"],
+                        "name": station["name"],
+                        "lat": station["lat"],
+                        "lon": station["lon"],
+                        "value": float(val),
+                    }
+                )
 
     # Run IDW interpolation
     grid = idw_interpolate(station_data, grid_resolution=grid_resolution)
@@ -353,18 +358,42 @@ def generate_ntb_heatmap(
         },
         "islands": {
             "lombok": {
-                "stations": len([s for s in station_data if get_station_by_id(s["id"])["island"] == "Lombok"]),
-                "mean": round(float(np.mean([
-                    s["value"] for s in station_data
-                    if get_station_by_id(s["id"])["island"] == "Lombok"
-                ])), 2) if station_data else 0,
+                "stations": len(
+                    [s for s in station_data if get_station_by_id(s["id"])["island"] == "Lombok"]
+                ),
+                "mean": round(
+                    float(
+                        np.mean(
+                            [
+                                s["value"]
+                                for s in station_data
+                                if get_station_by_id(s["id"])["island"] == "Lombok"
+                            ]
+                        )
+                    ),
+                    2,
+                )
+                if station_data
+                else 0,
             },
             "sumbawa": {
-                "stations": len([s for s in station_data if get_station_by_id(s["id"])["island"] == "Sumbawa"]),
-                "mean": round(float(np.mean([
-                    s["value"] for s in station_data
-                    if get_station_by_id(s["id"])["island"] == "Sumbawa"
-                ])), 2) if station_data else 0,
+                "stations": len(
+                    [s for s in station_data if get_station_by_id(s["id"])["island"] == "Sumbawa"]
+                ),
+                "mean": round(
+                    float(
+                        np.mean(
+                            [
+                                s["value"]
+                                for s in station_data
+                                if get_station_by_id(s["id"])["island"] == "Sumbawa"
+                            ]
+                        )
+                    ),
+                    2,
+                )
+                if station_data
+                else 0,
             },
         },
         "method": "IDW_interpolation",
@@ -383,11 +412,11 @@ def check_regional_alerts(
     """
     if thresholds is None:
         thresholds = {
-            "pm10": 150,   # PP 22/2021 24h limit
-            "pm25": 55,    # PP 22/2021 24h limit
-            "so2": 150,    # PP 22/2021 1h limit
-            "no2": 200,    # PP 22/2021 1h limit
-            "co": 10000,   # PP 22/2021 8h limit
+            "pm10": 150,  # PP 22/2021 24h limit
+            "pm25": 55,  # PP 22/2021 24h limit
+            "so2": 150,  # PP 22/2021 1h limit
+            "no2": 200,  # PP 22/2021 1h limit
+            "co": 10000,  # PP 22/2021 8h limit
         }
 
     alerts = []
@@ -400,18 +429,20 @@ def check_regional_alerts(
         for pollutant, threshold in thresholds.items():
             value = measurements.get(pollutant)
             if value is not None and value > threshold:
-                alerts.append({
-                    "station_id": station["id"],
-                    "station_name": station["name"],
-                    "city": station["city"],
-                    "island": station["island"],
-                    "pollutant": pollutant,
-                    "value": round(float(value), 2),
-                    "threshold": threshold,
-                    "exceedance_pct": round((value - threshold) / threshold * 100, 1),
-                    "severity": "critical" if value > threshold * 2 else "warning",
-                    "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
-                })
+                alerts.append(
+                    {
+                        "station_id": station["id"],
+                        "station_name": station["name"],
+                        "city": station["city"],
+                        "island": station["island"],
+                        "pollutant": pollutant,
+                        "value": round(float(value), 2),
+                        "threshold": threshold,
+                        "exceedance_pct": round((value - threshold) / threshold * 100, 1),
+                        "severity": "critical" if value > threshold * 2 else "warning",
+                        "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+                    }
+                )
 
     return sorted(alerts, key=lambda x: x["exceedance_pct"], reverse=True)
 
@@ -434,17 +465,19 @@ def get_ntb_regional_summary(
         measurements = station_measurements[station["id"]]
         ispu = get_overall_ispu(measurements)
 
-        station_summaries.append({
-            "station_id": station["id"],
-            "station_name": station["name"],
-            "city": station["city"],
-            "island": station["island"],
-            "type": station["type"],
-            "lat": station["lat"],
-            "lon": station["lon"],
-            "measurements": measurements,
-            "ispu": ispu,
-        })
+        station_summaries.append(
+            {
+                "station_id": station["id"],
+                "station_name": station["name"],
+                "city": station["city"],
+                "island": station["island"],
+                "type": station["type"],
+                "lat": station["lat"],
+                "lon": station["lon"],
+                "measurements": measurements,
+                "ispu": ispu,
+            }
+        )
 
     # Island summaries
     lombok_stations = [s for s in station_summaries if s["island"] == "Lombok"]
@@ -459,7 +492,8 @@ def get_ntb_regional_summary(
             "mean_ispu": round(float(np.mean(ispu_values)), 1) if ispu_values else 0,
             "max_ispu": round(float(np.max(ispu_values)), 1) if ispu_values else 0,
             "critical_station": max(stations, key=lambda x: x["ispu"]["value"] or 0)["station_name"]
-            if stations else None,
+            if stations
+            else None,
         }
 
     # Overall NTB summary
