@@ -870,3 +870,157 @@ body {
 .toast-close:hover {
     color: var(--text-main);
 }
+
+/* ============================================================
+   NTB Monitoring & ML Analysis Styles
+   ============================================================ */
+
+.panel-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 12px 0 8px 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.control-input {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    font-family: var(--font-family);
+}
+
+.control-input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px var(--accent-blue-glow);
+}
+
+.control-btn.secondary {
+    background: transparent;
+    border: 1px solid var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+.control-btn.secondary:hover {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.info-box.warning {
+    border-left: 3px solid var(--warning);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.info-box.critical {
+    border-left: 3px solid var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.info-box.success {
+    border-left: 3px solid var(--accent-green);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.ntb-station-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    border-left: 3px solid var(--accent-blue);
+}
+
+.ntb-station-item.mining { border-left-color: var(--warning); }
+.ntb-station-item.urban { border-left-color: var(--accent-blue); }
+.ntb-station-item.airport { border-left-color: var(--accent-purple); }
+.ntb-station-item.port { border-left-color: var(--accent-green); }
+
+.ntb-station-item .station-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.ntb-station-item .station-city {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.ntb-station-item .station-ispu {
+    font-size: 0.9rem;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: right;
+}
+
+.ml-result-card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.ml-result-card h5 {
+    font-size: 0.8rem;
+    color: var(--accent-blue);
+    margin-bottom: 6px;
+}
+
+.ml-result-card .result-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.ml-result-card .result-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.regional-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.regional-card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+}
+
+.regional-card .region-name {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.regional-card .region-ispu {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.heatmap-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 12px;
+    border-radius: 2px;
+}

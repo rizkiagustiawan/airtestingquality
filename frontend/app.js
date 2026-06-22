@@ -146,6 +146,18 @@ function setupEventListeners() {
     document.getElementById('report-summary-btn').addEventListener('click', downloadSummaryReport);
     document.getElementById('report-hist-btn').addEventListener('click', downloadHistoricalReport);
 
+    // NTB Monitoring
+    document.getElementById('ntb-refresh').addEventListener('click', loadNTBData);
+    document.getElementById('ntb-heatmap-btn').addEventListener('click', showNTBHeatmap);
+    document.getElementById('ntb-island-filter').addEventListener('change', filterNTBStations);
+
+    // ML Analysis
+    document.getElementById('ml-tool-select').addEventListener('change', switchMLTool);
+    document.getElementById('ml-forecast-run').addEventListener('click', runMLForecast);
+    document.getElementById('ml-ispu-run').addEventListener('click', runMLISPU);
+    document.getElementById('ml-health-run').addEventListener('click', runMLHealth);
+    document.getElementById('ml-source-run').addEventListener('click', runMLSource);
+
     // Panel Closers
     document.getElementById('chart-close').addEventListener('click', () => {
         document.getElementById('chart-panel').style.display = 'none';
@@ -194,6 +206,15 @@ function switchModule(moduleName) {
         document.getElementById('ispu-panel').style.display = 'none';
         document.getElementById('map-legend').style.display = 'none';
         populateReportStations();
+    }
+    else if (moduleName === 'ntb') {
+        document.getElementById('ispu-panel').style.display = 'none';
+        document.getElementById('map-legend').style.display = 'none';
+        loadNTBData();
+    }
+    else if (moduleName === 'ml') {
+        document.getElementById('ispu-panel').style.display = 'none';
+        document.getElementById('map-legend').style.display = 'none';
     }
 }
 
@@ -747,6 +768,374 @@ function renderLegend(title, bands) {
             </div>
         `;
     });
+}
+
+// -------------------------------------------------------------
+// NTB Regional Monitoring
+// -------------------------------------------------------------
+let ntbData = { stations: [], summary: null, alerts: [] };
+
+async function loadNTBData() {
+    try {
+        showToast('Loading', 'Fetching NTB station data...', 'info');
+
+        // Load stations
+        const stationsRes = await fetch(`${API_BASE}/api/ntb/stations`);
+        const stationsData = await stationsRes.json();
+
+        // Load regional summary
+        const summaryRes = await fetch(`${API_BASE}/api/ntb/regional-summary?source=${DEFAULT_DATA_SOURCE}`);
+        const summaryData = await summaryRes.json();
+
+        // Load alerts
+        const alertsRes = await fetch(`${API_BASE}/api/ntb/alerts?source=${DEFAULT_DATA_SOURCE}`);
+        const alertsData = await alertsRes.json();
+
+        ntbData.stations = stationsData.stations || [];
+        ntbData.summary = summaryData;
+        ntbData.alerts = alertsData.alerts || [];
+
+        renderNTBStations();
+        renderNTBSummary();
+        renderNTBAlerts();
+
+        showToast('Success', `Loaded ${ntbData.stations.length} NTB stations`, 'success');
+    } catch (err) {
+        console.error('NTB data load failed:', err);
+        showToast('Error', 'Failed to load NTB data', 'error');
+    }
+}
+
+function renderNTBStations() {
+    const list = document.getElementById('ntb-station-list');
+    const filter = document.getElementById('ntb-island-filter').value;
+
+    const filtered = filter === 'all'
+        ? ntbData.stations
+        : ntbData.stations.filter(s => s.island === filter);
+
+    list.innerHTML = filtered.map(s => {
+        const ispuVal = getStationISPU(s.id);
+        const ispuColor = getISPUColor(ispuVal);
+        return `
+            <li class="ntb-station-item ${s.type}">
+                <div>
+                    <div class="station-name">${s.name}</div>
+                    <div class="station-city">${s.city} · ${s.island}</div>
+                </div>
+                <div class="station-ispu" style="color:${ispuColor}">${ispuVal || '--'}</div>
+            </li>
+        `;
+    }).join('');
+}
+
+function getStationISPU(stationId) {
+    if (!ntbData.summary || !ntbData.summary.stations) return null;
+    const station = ntbData.summary.stations.find(s => s.station_id === stationId);
+    return station ? station.ispu?.value : null;
+}
+
+function getISPUColor(ispu) {
+    if (!ispu) return '#94a3b8';
+    if (ispu <= 50) return '#10b981';
+    if (ispu <= 100) return '#3b82f6';
+    if (ispu <= 200) return '#f59e0b';
+    if (ispu <= 300) return '#ef4444';
+    return '#000000';
+}
+
+function renderNTBSummary() {
+    if (!ntbData.summary) return;
+
+    const summaryDiv = document.getElementById('ntb-summary');
+    summaryDiv.style.display = 'block';
+
+    const ntb = ntbData.summary.ntb_summary || {};
+    const lombok = ntbData.summary.islands?.lombok || {};
+    const sumbawa = ntbData.summary.islands?.sumbawa || {};
+
+    document.getElementById('ntb-ispu-avg').textContent = ntb.mean_ispu || '--';
+    document.getElementById('ntb-lombok-ispu').textContent = lombok.mean_ispu || '--';
+    document.getElementById('ntb-sumbawa-ispu').textContent = sumbawa.mean_ispu || '--';
+}
+
+function renderNTBAlerts() {
+    const alertsDiv = document.getElementById('ntb-alerts');
+    const contentDiv = document.getElementById('ntb-alerts-content');
+
+    if (!ntbData.alerts || ntbData.alerts.length === 0) {
+        alertsDiv.style.display = 'none';
+        return;
+    }
+
+    alertsDiv.style.display = 'block';
+    contentDiv.innerHTML = ntbData.alerts.slice(0, 5).map(a => `
+        <p style="font-size:0.8rem;margin:4px 0">
+            <strong>${a.station_name}</strong>: ${a.pollutant}=${a.value} (${a.severity})
+        </p>
+    `).join('');
+}
+
+function filterNTBStations() {
+    renderNTBStations();
+}
+
+async function showNTBHeatmap() {
+    const pollutant = document.getElementById('ntb-pollutant').value;
+    try {
+        showToast('Loading', 'Generating NTB heatmap...', 'info');
+
+        const res = await fetch(`${API_BASE}/api/ntb/heatmap?pollutant=${pollutant}&source=${DEFAULT_DATA_SOURCE}&resolution=0.1`);
+        const data = await res.json();
+
+        // Clear existing heatmap layers
+        if (state.layers.ntbHeatmap) {
+            map.removeLayer(state.layers.ntbHeatmap);
+        }
+        state.layers.ntbHeatmap = L.layerGroup().addTo(map);
+
+        // Add heatmap grid points
+        const grid = data.grid?.grid || [];
+        grid.forEach(point => {
+            if (point.value > 0) {
+                const color = getHeatmapColor(point.value, pollutant);
+                L.circleMarker([point.lat, point.lon], {
+                    radius: 4,
+                    fillColor: color,
+                    fillOpacity: 0.6,
+                    stroke: false
+                }).addTo(state.layers.ntbHeatmap);
+            }
+        });
+
+        // Add station markers
+        data.stations?.forEach(s => {
+            L.marker([s.lat, s.lon])
+                .bindPopup(`<b>${s.name || s.id}</b><br>${pollutant}: ${s.value} ug/m3`)
+                .addTo(state.layers.ntbHeatmap);
+        });
+
+        // Show legend
+        showHeatmapLegend(pollutant, data.regional_stats);
+
+        showToast('Success', `Heatmap generated: ${grid.length} grid points`, 'success');
+    } catch (err) {
+        console.error('Heatmap failed:', err);
+        showToast('Error', 'Failed to generate heatmap', 'error');
+    }
+}
+
+function getHeatmapColor(value, pollutant) {
+    const limits = { pm10: [45, 75, 150], pm25: [15, 55, 150], so2: [40, 75, 150], no2: [25, 65, 200], co: [4000, 10000, 30000] };
+    const [who, pp22, critical] = limits[pollutant] || [45, 75, 150];
+
+    if (value < who) return '#10b981';
+    if (value < pp22) return '#f59e0b';
+    if (value < critical) return '#ef4444';
+    return '#7c2d12';
+}
+
+function showHeatmapLegend(pollutant, stats) {
+    const legend = document.getElementById('map-legend');
+    const title = document.getElementById('legend-title');
+    const content = document.getElementById('legend-content');
+
+    legend.style.display = 'block';
+    title.textContent = `${pollutant.toUpperCase()} Heatmap`;
+
+    content.innerHTML = `
+        <div class="heatmap-legend">
+            <div class="legend-item"><div class="legend-color" style="background:#10b981"></div> Below WHO</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f59e0b"></div> WHO - PP22</div>
+            <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div> PP22 - Critical</div>
+            <div class="legend-item"><div class="legend-color" style="background:#7c2d12"></div> Above Critical</div>
+        </div>
+        <div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)">
+            Station mean: ${stats?.station_mean || '--'} ug/m3<br>
+            Max: ${stats?.station_max || '--'} ug/m3
+        </div>
+    `;
+}
+
+// -------------------------------------------------------------
+// ML-Powered Analysis
+// -------------------------------------------------------------
+function switchMLTool() {
+    const tool = document.getElementById('ml-tool-select').value;
+    document.getElementById('ml-forecast-controls').style.display = tool === 'forecast-v2' ? 'block' : 'none';
+    document.getElementById('ml-ispu-controls').style.display = tool === 'ispu-classify' ? 'block' : 'none';
+    document.getElementById('ml-health-controls').style.display = tool === 'health-impact' ? 'block' : 'none';
+    document.getElementById('ml-source-controls').style.display = tool === 'source-apportion' ? 'block' : 'none';
+    document.getElementById('ml-results').style.display = 'none';
+}
+
+async function runMLForecast() {
+    const hours = document.getElementById('ml-forecast-horizon').value;
+    try {
+        showToast('Forecasting', `Running v2 forecast for ${hours}h...`, 'info');
+
+        const res = await fetch(`${API_BASE}/api/forecast/v2?hours=${hours}`);
+        const data = await res.json();
+
+        const resultsDiv = document.getElementById('ml-results');
+        resultsDiv.style.display = 'block';
+
+        const peak = data.predictions?.reduce((max, p) => p.ispu?.value > max.ispu?.value ? p : max, data.predictions[0]);
+        const summary = data.summary || {};
+
+        document.getElementById('ml-results-content').innerHTML = `
+            <div class="ml-result-card">
+                <h5>Forecast v2 Results</h5>
+                <div class="result-value" style="color:${getISPUColor(peak?.ispu?.value)}">${peak?.ispu?.value || '--'}</div>
+                <div class="result-label">Peak ISPU (${peak?.ispu?.category || 'N/A'})</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:8px">
+                    Method: ${data.method || 'N/A'}<br>
+                    Data: ${data.data_source || 'N/A'}<br>
+                    Smoothing: Kalman + RoC clamp
+                </div>
+            </div>
+            <div class="ml-result-card">
+                <h5>PM10 Summary</h5>
+                <div style="font-size:0.85rem">
+                    Mean: ${summary.pm10?.mean || '--'} ug/m3<br>
+                    Max: ${summary.pm10?.max || '--'} ug/m3<br>
+                    Max jump: ${summary.pm10?.max_hourly_change || '--'} ug/m3/hr
+                </div>
+            </div>
+        `;
+
+        showToast('Success', 'Forecast v2 completed', 'success');
+    } catch (err) {
+        console.error('ML Forecast failed:', err);
+        showToast('Error', 'Forecast failed', 'error');
+    }
+}
+
+async function runMLISPU() {
+    const pm10 = document.getElementById('ml-ispu-pm10').value;
+    const pm25 = document.getElementById('ml-ispu-pm25').value;
+    const so2 = document.getElementById('ml-ispu-so2').value;
+    const no2 = document.getElementById('ml-ispu-no2').value;
+    const co = document.getElementById('ml-ispu-co').value;
+
+    try {
+        showToast('Classifying', 'Running ISPU ML classifier...', 'info');
+
+        const res = await fetch(`${API_BASE}/api/ispu/classify?pm10=${pm10}&pm25=${pm25}&so2=${so2}&no2=${no2}&co=${co}`);
+        const data = await res.json();
+
+        const resultsDiv = document.getElementById('ml-results');
+        resultsDiv.style.display = 'block';
+
+        const bp = data.ispu_breakpoint || {};
+        const ens = data.ml_ensemble || {};
+
+        document.getElementById('ml-results-content').innerHTML = `
+            <div class="ml-result-card">
+                <h5>ISPU Classification</h5>
+                <div class="result-value" style="color:${getISPUColor(bp.value)}">${bp.value || '--'}</div>
+                <div class="result-label">${bp.category || 'N/A'} (Breakpoint method)</div>
+            </div>
+            <div class="ml-result-card">
+                <h5>ML Ensemble Result</h5>
+                <div style="font-size:0.85rem">
+                    <strong>${data.ml_category || 'N/A'}</strong> (${(data.ml_confidence * 100).toFixed(1)}% confidence)<br>
+                    SVM: ${ens.svm || '--'}<br>
+                    RF: ${ens.random_forest || '--'}<br>
+                    XGBoost: ${ens.xgboost || '--'}
+                </div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">
+                    Data: ${data.ml_data_source || 'N/A'} (${data.ml_n_training_samples || 0} samples)
+                </div>
+            </div>
+        `;
+
+        showToast('Success', `Classified as ${data.ml_category}`, 'success');
+    } catch (err) {
+        console.error('ML ISPU failed:', err);
+        showToast('Error', 'Classification failed', 'error');
+    }
+}
+
+async function runMLHealth() {
+    try {
+        showToast('Assessing', 'Running health impact assessment...', 'info');
+
+        const res = await fetch(`${API_BASE}/api/health-impact?source=${DEFAULT_DATA_SOURCE}`);
+        const data = await res.json();
+
+        const resultsDiv = document.getElementById('ml-results');
+        resultsDiv.style.display = 'block';
+
+        const pm25 = data.pollutant_impacts?.pm25 || {};
+        const maxAP = Math.max(...Object.values(pm25.attributable_proportions || {}).map(v => v.ap_pct));
+
+        document.getElementById('ml-results-content').innerHTML = `
+            <div class="ml-result-card">
+                <h5>Health Impact Assessment</h5>
+                <div class="result-value">${data.risk_level || 'N/A'}</div>
+                <div class="result-label">Risk Level (Score: ${data.overall_risk_score || 0})</div>
+            </div>
+            <div class="ml-result-card">
+                <h5>PM2.5 Impact</h5>
+                <div style="font-size:0.85rem">
+                    Concentration: ${pm25.concentration || '--'} ug/m3<br>
+                    Exceeds WHO: ${pm25.exceeds_who ? 'Yes' : 'No'}<br>
+                    Max AP: ${maxAP.toFixed(2)}%<br>
+                    HQ: ${pm25.hazard_quotient || '--'}
+                </div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">
+                    Method: WHO AirQ+ (Conti 2017, Liu 2019, Chen 2020)
+                </div>
+            </div>
+        `;
+
+        showToast('Success', `Risk: ${data.risk_level}`, 'success');
+    } catch (err) {
+        console.error('ML Health failed:', err);
+        showToast('Error', 'Assessment failed', 'error');
+    }
+}
+
+async function runMLSource() {
+    const pollutant = document.getElementById('ml-source-pollutant').value;
+    try {
+        showToast('Analyzing', 'Running source apportionment...', 'info');
+
+        const res = await fetch(`${API_BASE}/api/openair/source-apportionment?pollutant=${pollutant}`);
+        const data = await res.json();
+
+        const resultsDiv = document.getElementById('ml-results');
+        resultsDiv.style.display = 'block';
+
+        const dominant = data.dominant_source_direction || {};
+        const sourceType = data.source_type_estimation || {};
+
+        document.getElementById('ml-results-content').innerHTML = `
+            <div class="ml-result-card">
+                <h5>Source Apportionment</h5>
+                <div class="result-value">${dominant.sector || 'N/A'}</div>
+                <div class="result-label">Dominant Source Direction (${dominant.direction_deg || '--'}deg)</div>
+            </div>
+            <div class="ml-result-card">
+                <h5>Source Type</h5>
+                <div style="font-size:0.85rem">
+                    <strong>${sourceType.dominant || 'N/A'}</strong><br>
+                    Low speed: ${sourceType.low_speed_pct || 0}%<br>
+                    High speed: ${sourceType.high_speed_pct || 0}%<br>
+                    <em>${sourceType.interpretation || ''}</em>
+                </div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">
+                    Data: ${data.data_source || 'N/A'}
+                </div>
+            </div>
+        `;
+
+        showToast('Success', `Source: ${sourceType.dominant || 'N/A'}`, 'success');
+    } catch (err) {
+        console.error('ML Source failed:', err);
+        showToast('Error', 'Analysis failed', 'error');
+    }
 }
 
 // -------------------------------------------------------------

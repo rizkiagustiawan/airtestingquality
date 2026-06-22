@@ -74,6 +74,16 @@
                         <span>Reports</span>
                         <small>Data Exports</small>
                     </button>
+                    <button class="module-tab" data-module="ntb" id="tab-ntb">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <span>NTB Monitor</span>
+                        <small>Regional Coverage</small>
+                    </button>
+                    <button class="module-tab" data-module="ml" id="tab-ml">
+                        <i class="fas fa-brain"></i>
+                        <span>ML Analysis</span>
+                        <small>AI-Powered Tools</small>
+                    </button>
                 </nav>
 
                 <div class="module-panels">
@@ -246,6 +256,139 @@
                             <p><strong>Regulatory Compliance</strong></p>
                             <p>Generated reports follow standard environmental reporting structures for PM10, PM2.5, and gaseous pollutants.</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- NTB Monitoring Panel -->
+                <div class="module-panel" id="panel-ntb">
+                    <h3 class="panel-title"><i class="fas fa-map-marked-alt"></i> NTB Regional Monitoring</h3>
+                    <div class="info-box">
+                        <p><strong>12 Stations</strong> across Lombok (6) and Sumbawa (6)</p>
+                    </div>
+                    <div class="control-group">
+                        <label>Island Filter</label>
+                        <select id="ntb-island-filter" class="control-select">
+                            <option value="all">All NTB</option>
+                            <option value="Lombok">Lombok (6 stations)</option>
+                            <option value="Sumbawa">Sumbawa (6 stations)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Heatmap Pollutant</label>
+                        <select id="ntb-pollutant" class="control-select">
+                            <option value="pm10" selected>PM10</option>
+                            <option value="pm25">PM2.5</option>
+                            <option value="so2">SO2</option>
+                            <option value="no2">NO2</option>
+                            <option value="co">CO</option>
+                        </select>
+                    </div>
+                    <button class="control-btn" id="ntb-refresh"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+                    <button class="control-btn secondary" id="ntb-heatmap-btn"><i class="fas fa-fire"></i> Show Heatmap</button>
+
+                    <div id="ntb-summary" class="info-box" style="display:none">
+                        <p><strong>NTB Summary:</strong> <span id="ntb-ispu-avg">--</span></p>
+                        <p><strong>Lombok:</strong> <span id="ntb-lombok-ispu">--</span> (6 stations)</p>
+                        <p><strong>Sumbawa:</strong> <span id="ntb-sumbawa-ispu">--</span> (6 stations)</p>
+                    </div>
+
+                    <h4 class="panel-subtitle"><i class="fas fa-list"></i> Stations</h4>
+                    <ul id="ntb-station-list" class="station-list">
+                        <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading stations...</div>
+                    </ul>
+
+                    <div id="ntb-alerts" class="info-box warning" style="display:none">
+                        <p><i class="fas fa-exclamation-triangle"></i> <strong>Alerts:</strong></p>
+                        <div id="ntb-alerts-content"></div>
+                    </div>
+                </div>
+
+                <!-- ML Analysis Panel -->
+                <div class="module-panel" id="panel-ml">
+                    <h3 class="panel-title"><i class="fas fa-brain"></i> ML-Powered Analysis</h3>
+
+                    <!-- ML Tool Selector -->
+                    <div class="control-group">
+                        <label>Select Tool</label>
+                        <select id="ml-tool-select" class="control-select">
+                            <option value="forecast-v2">Forecast v2 (Kalman)</option>
+                            <option value="ispu-classify">ISPU Classifier (Ensemble)</option>
+                            <option value="health-impact">Health Impact (WHO AirQ+)</option>
+                            <option value="source-apportion">Source Apportionment</option>
+                        </select>
+                    </div>
+
+                    <!-- Forecast v2 Controls -->
+                    <div id="ml-forecast-controls">
+                        <div class="control-group">
+                            <label>Forecast Horizon</label>
+                            <select id="ml-forecast-horizon" class="control-select">
+                                <option value="12">12 Hours</option>
+                                <option value="24" selected>24 Hours</option>
+                                <option value="48">48 Hours</option>
+                                <option value="72">72 Hours</option>
+                            </select>
+                        </div>
+                        <button class="control-btn" id="ml-forecast-run"><i class="fas fa-bolt"></i> Run Forecast v2</button>
+                    </div>
+
+                    <!-- ISPU Classifier Controls -->
+                    <div id="ml-ispu-controls" style="display:none">
+                        <div class="control-group">
+                            <label>PM10 (ug/m3)</label>
+                            <input type="number" id="ml-ispu-pm10" class="control-input" value="50" min="0" max="600">
+                        </div>
+                        <div class="control-group">
+                            <label>PM2.5 (ug/m3)</label>
+                            <input type="number" id="ml-ispu-pm25" class="control-input" value="20" min="0" max="500">
+                        </div>
+                        <div class="control-group">
+                            <label>SO2 (ug/m3)</label>
+                            <input type="number" id="ml-ispu-so2" class="control-input" value="15" min="0" max="1200">
+                        </div>
+                        <div class="control-group">
+                            <label>NO2 (ug/m3)</label>
+                            <input type="number" id="ml-ispu-no2" class="control-input" value="10" min="0" max="3000">
+                        </div>
+                        <div class="control-group">
+                            <label>CO (ug/m3)</label>
+                            <input type="number" id="ml-ispu-co" class="control-input" value="800" min="0" max="50000">
+                        </div>
+                        <button class="control-btn" id="ml-ispu-run"><i class="fas fa-brain"></i> Classify ISPU</button>
+                    </div>
+
+                    <!-- Health Impact Controls -->
+                    <div id="ml-health-controls" style="display:none">
+                        <div class="control-group">
+                            <label>Population Reference</label>
+                            <input type="number" id="ml-health-pop" class="control-input" value="100000" min="1000">
+                        </div>
+                        <button class="control-btn" id="ml-health-run"><i class="fas fa-heartbeat"></i> Assess Health Impact</button>
+                    </div>
+
+                    <!-- Source Apportionment Controls -->
+                    <div id="ml-source-controls" style="display:none">
+                        <div class="control-group">
+                            <label>Pollutant</label>
+                            <select id="ml-source-pollutant" class="control-select">
+                                <option value="pm10" selected>PM10</option>
+                                <option value="pm25">PM2.5</option>
+                                <option value="so2">SO2</option>
+                                <option value="no2">NO2</option>
+                                <option value="co">CO</option>
+                            </select>
+                        </div>
+                        <button class="control-btn" id="ml-source-run"><i class="fas fa-crosshairs"></i> Analyze Sources</button>
+                    </div>
+
+                    <!-- ML Results Display -->
+                    <div id="ml-results" class="info-box" style="display:none">
+                        <div id="ml-results-content"></div>
+                    </div>
+
+                    <div class="info-box">
+                        <p><strong>Scientific ML Tools</strong></p>
+                        <p>All tools based on peer-reviewed papers (200+). Ensemble SVM+RF+XGBoost for classification, Kalman filter for forecasting, WHO AirQ+ for health assessment.</p>
                     </div>
                 </div>
             </aside>
