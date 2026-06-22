@@ -34,6 +34,13 @@ from source_apportionment import (
     compute_pollution_rose,
     estimate_local_regional_split,
 )
+from ntb_monitoring import (
+    get_all_stations,
+    get_ntb_regional_summary,
+    generate_ntb_heatmap,
+    check_regional_alerts,
+    get_stations_by_island,
+)
 from governance import (
     append_audit_event,
     load_station_history,
@@ -743,6 +750,103 @@ def api_qaqc_v2(
         return {"status": "success", "summary": summary, "stations": processed}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"QA/QC v2 Error: {exc}")
+
+
+# ──────────────────────────────────────────────────────────────────────
+# NTB Regional Monitoring Endpoints
+# ──────────────────────────────────────────────────────────────────────
+
+
+@app.get("/api/ntb/stations")
+def api_ntb_stations(island: str = Query(None, pattern="^(Lombok|Sumbawa)$")) -> dict:
+    """
+    Get all NTB monitoring stations.
+    Optionally filter by island (Lombok/Sumbawa).
+    """
+    if island:
+        stations = get_stations_by_island(island)
+    else:
+        stations = get_all_stations()
+    return {
+        "status": "success",
+        "region": "Nusa Tenggara Barat (NTB)",
+        "total_stations": len(stations),
+        "stations": stations,
+    }
+
+
+@app.get("/api/ntb/regional-summary")
+def api_ntb_regional_summary(
+    source: str = Query(settings.DATA_SOURCE),
+) -> dict:
+    """
+    Get regional air quality summary for all NTB.
+    Includes island-level and station-level ISPU summaries.
+    """
+    try:
+        stations_data, _ = fetch_indonesia_air_quality(source=source)
+        # Build measurements dict
+        measurements = {}
+        for st in stations_data:
+            st_id = str(st.get("id", ""))
+            measurements[st_id] = st.get("measurements", {})
+
+        return get_ntb_regional_summary(measurements)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"NTB Summary Error: {exc}")
+
+
+@app.get("/api/ntb/heatmap")
+def api_ntb_heatmap(
+    pollutant: str = Query("pm10", pattern="^(pm10|pm25|so2|no2|co)$"),
+    source: str = Query(settings.DATA_SOURCE),
+    resolution: float = Query(0.05, ge=0.01, le=0.2),
+) -> dict:
+    """
+    Generate NTB air quality heatmap using IDW spatial interpolation.
+    Returns grid data suitable for heatmap visualization on Leaflet.
+    """
+    try:
+        stations_data, _ = fetch_indonesia_air_quality(source=source)
+        # Build measurements dict
+        measurements = {}
+        for st in stations_data:
+            st_id = str(st.get("id", ""))
+            measurements[st_id] = st.get("measurements", {})
+
+        return generate_ntb_heatmap(
+            pollutant=pollutant,
+            station_measurements=measurements,
+            grid_resolution=resolution,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"NTB Heatmap Error: {exc}")
+
+
+@app.get("/api/ntb/alerts")
+def api_ntb_alerts(
+    source: str = Query(settings.DATA_SOURCE),
+) -> dict:
+    """
+    Check for air quality alerts across all NTB stations.
+    Returns list of stations exceeding PP 22/2021 thresholds.
+    """
+    try:
+        stations_data, _ = fetch_indonesia_air_quality(source=source)
+        measurements = {}
+        for st in stations_data:
+            st_id = str(st.get("id", ""))
+            measurements[st_id] = st.get("measurements", {})
+
+        alerts = check_regional_alerts(measurements)
+        return {
+            "status": "success",
+            "region": "NTB",
+            "total_alerts": len(alerts),
+            "alerts": alerts,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"NTB Alerts Error: {exc}")
 
 
 app.mount("/app", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
