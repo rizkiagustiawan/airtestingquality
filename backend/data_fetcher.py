@@ -8,6 +8,14 @@ import requests
 SUPPORTED_POLLUTANTS = {"pm25", "pm10", "so2", "no2", "co", "o3"}
 logger = logging.getLogger(__name__)
 
+# NTB cities available on WAQI
+NTB_WAQI_CITIES = {
+    "mataram": {"name": "Mataram", "lat": -8.5833, "lon": 116.1167},
+    "lombok": {"name": "Lombok", "lat": -8.6500, "lon": 116.3294},
+    "sumbawa": {"name": "Sumbawa", "lat": -8.4833, "lon": 117.4167},
+    "bima": {"name": "Bima", "lat": -8.4667, "lon": 118.7167},
+}
+
 
 def _normalize_pollutant(name: str) -> str:
     normalized = name.strip().lower().replace(".", "")
@@ -134,6 +142,12 @@ def fetch_waqi_indonesia_air_quality(
         if not measurements:
             continue
 
+        # Check if this is an NTB city
+        ntb_info = NTB_WAQI_CITIES.get(city_key.lower())
+        if ntb_info:
+            station_name = ntb_info["name"]
+            geo = [ntb_info["lat"], ntb_info["lon"]]
+
         stations.append(
             {
                 "id": f"waqi-{station_id}",
@@ -149,6 +163,18 @@ def fetch_waqi_indonesia_air_quality(
             }
         )
     return stations
+
+
+def fetch_ntb_waqi_data(token: str, timeout_seconds: int = 8) -> list[dict]:
+    """
+    Fetch air quality data specifically for NTB cities from WAQI API.
+    Returns data for Mataram, Lombok, Sumbawa, and Bima if available.
+    """
+    if not token:
+        raise ValueError("WAQI token is required for NTB data")
+
+    ntb_cities = list(NTB_WAQI_CITIES.keys())
+    return fetch_waqi_indonesia_air_quality(token, ntb_cities, timeout_seconds)
 
 
 def fetch_indonesia_air_quality(source: str = "auto") -> tuple[list[dict], dict]:
