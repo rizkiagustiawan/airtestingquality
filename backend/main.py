@@ -41,6 +41,12 @@ from ntb_monitoring import (
     check_regional_alerts,
     get_stations_by_island,
 )
+from satellite_data import (
+    fetch_ntb_satellite_summary,
+    fetch_sentinel5p_data,
+    fetch_nasa_power_data,
+    get_satellite_data_for_station,
+)
 from governance import (
     append_audit_event,
     load_station_history,
@@ -844,6 +850,91 @@ def api_ntb_alerts(
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"NTB Alerts Error: {exc}")
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Satellite Data Endpoints (Sentinel-5P + NASA POWER)
+# ──────────────────────────────────────────────────────────────────────
+
+
+@app.get("/api/satellite/ntb-summary")
+def api_satellite_ntb_summary() -> dict:
+    """
+    Fetch satellite data summary for all key NTB stations.
+
+    Combines:
+    - Sentinel-5P: NO2, SO2, CO, O3 column densities
+    - NASA POWER: Temperature, humidity, wind, solar radiation
+
+    Requires GEE service account key at /gee-key.json
+    """
+    try:
+        return fetch_ntb_satellite_summary()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Satellite Error: {exc}")
+
+
+@app.get("/api/satellite/sentinel5p")
+def api_sentinel5p(
+    lat: float = Query(-8.58, ge=-90, le=90),
+    lon: float = Query(116.12, ge=-180, le=180),
+    days: int = Query(30, ge=7, le=90),
+) -> dict:
+    """
+    Fetch Sentinel-5P satellite data for a specific location.
+
+    Returns column densities for:
+    - NO2 (tropospheric)
+    - CO
+    - SO2
+    - O3
+
+    Data source: ESA Sentinel-5P via Google Earth Engine
+    """
+    try:
+        return fetch_sentinel5p_data(lat=lat, lon=lon, days_back=days)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Sentinel-5P Error: {exc}")
+
+
+@app.get("/api/satellite/nasa-power")
+def api_nasa_power(
+    lat: float = Query(-8.58, ge=-90, le=90),
+    lon: float = Query(116.12, ge=-180, le=180),
+    start: str = Query("20260601"),
+    end: str = Query("20260623"),
+) -> dict:
+    """
+    Fetch meteorological data from NASA POWER API.
+
+    Returns:
+    - Temperature at 2m (°C)
+    - Relative humidity at 2m (%)
+    - Wind speed at 2m (m/s)
+    - Wind direction at 2m (deg)
+    - Solar radiation (MJ/m²/day)
+
+    Free, no API key required. Global coverage.
+    """
+    try:
+        return fetch_nasa_power_data(
+            lat=lat, lon=lon, start_date=start, end_date=end
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"NASA POWER Error: {exc}")
+
+
+@app.get("/api/satellite/station/{station_id}")
+def api_satellite_station(station_id: str) -> dict:
+    """
+    Get satellite data for a specific NTB station.
+
+    Combines Sentinel-5P air quality data with NASA POWER meteorological data.
+    """
+    try:
+        return get_satellite_data_for_station(station_id)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Station Satellite Error: {exc}")
 
 
 app.mount("/app", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
