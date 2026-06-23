@@ -4,78 +4,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AirQ WebGIS Portfolio</title>
+    <title>AirQ WebGIS - Air Quality Monitoring</title>
     <meta name="description"
         content="Integrated Web GIS for air quality monitoring, OpenAir-style analytics, AERMOD-style dispersion, and CALPUFF-style transport.">
+    <meta name="theme-color" content="#06090f">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 
 <body>
-    <div id="loading-overlay">
+    <!-- Skip to main content for accessibility -->
+    <a href="#map" class="sr-only" id="skip-to-content">Skip to main content</a>
+
+    <div id="loading-overlay" role="alert" aria-live="polite" aria-label="Loading application">
         <div class="loader-logo">
-            <i class="fas fa-globe-asia"></i>
+            <i class="fas fa-globe-asia" aria-hidden="true"></i>
         </div>
         <div class="loader-text">AirQ System Initializing...</div>
         <div class="loader-bar">
-            <div class="loader-progress" id="loader-progress"></div>
+            <div class="loader-progress" id="loader-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
     </div>
 
     <div class="app-container">
-        <header class="top-bar">
+        <header class="top-bar" role="banner">
             <div class="brand">
-                <i class="fas fa-wind brand-icon"></i>
+                <i class="fas fa-wind brand-icon" aria-hidden="true"></i>
                 <h1>AirQ <span class="brand-accent">WebGIS</span></h1>
                 <span class="brand-sub">Environmental Engineering Portfolio</span>
             </div>
             <div class="top-bar-right">
-                <div class="status-badge live">
-                    <span class="dot pulse"></span> Live System
+                <div class="status-badge live" role="status" aria-label="System status: Live">
+                    <span class="dot pulse" aria-hidden="true"></span> Live System
                 </div>
-                <div class="top-bar-time" id="current-time">--</div>
+                <div class="top-bar-time" id="current-time" aria-live="polite" aria-label="Current time">--</div>
             </div>
         </header>
 
         <div class="main-layout">
-            <aside class="sidebar">
-                <nav class="module-tabs">
-                    <button class="module-tab active" data-module="monitoring" id="tab-monitoring">
-                        <i class="fas fa-broadcast-tower"></i>
+            <aside class="sidebar" role="complementary" aria-label="Navigation and controls">
+                <nav class="module-tabs" role="tablist" aria-label="Module navigation">
+                    <button class="module-tab active" data-module="monitoring" id="tab-monitoring" role="tab" aria-selected="true" aria-controls="panel-monitoring">
+                        <i class="fas fa-broadcast-tower" aria-hidden="true"></i>
                         <span>Monitoring</span>
                         <small>AQMS Live Data</small>
                     </button>
-                    <button class="module-tab" data-module="openair" id="tab-openair">
-                        <i class="fas fa-chart-pie"></i>
+                    <button class="module-tab" data-module="openair" id="tab-openair" role="tab" aria-selected="false" aria-controls="panel-openair">
+                        <i class="fas fa-chart-pie" aria-hidden="true"></i>
                         <span>OpenAir</span>
                         <small>Wind Rose & Analysis</small>
                     </button>
-                    <button class="module-tab" data-module="aermod" id="tab-aermod">
-                        <i class="fas fa-crosshairs"></i>
+                    <button class="module-tab" data-module="aermod" id="tab-aermod" role="tab" aria-selected="false" aria-controls="panel-aermod">
+                        <i class="fas fa-crosshairs" aria-hidden="true"></i>
                         <span>AERMOD</span>
                         <small>Near-field Dispersion</small>
                     </button>
-                    <button class="module-tab" data-module="calpuff" id="tab-calpuff">
-                        <i class="fas fa-cloud"></i>
+                    <button class="module-tab" data-module="calpuff" id="tab-calpuff" role="tab" aria-selected="false" aria-controls="panel-calpuff">
+                        <i class="fas fa-cloud" aria-hidden="true"></i>
                         <span>CALPUFF</span>
                         <small>Long-range Transport</small>
                     </button>
-                    <button class="module-tab" data-module="forecast" id="tab-forecast">
-                        <i class="fas fa-magic"></i>
+                    <button class="module-tab" data-module="forecast" id="tab-forecast" role="tab" aria-selected="false" aria-controls="panel-forecast">
+                        <i class="fas fa-magic" aria-hidden="true"></i>
                         <span>Forecast</span>
                         <small>Predictive Analysis</small>
                     </button>
-                    <button class="module-tab" data-module="reports" id="tab-reports">
-                        <i class="fas fa-file-contract"></i>
+                    <button class="module-tab" data-module="reports" id="tab-reports" role="tab" aria-selected="false" aria-controls="panel-reports">
+                        <i class="fas fa-file-contract" aria-hidden="true"></i>
                         <span>Reports</span>
                         <small>Data Exports</small>
                     </button>
-                    <button class="module-tab" data-module="ntb" id="tab-ntb">
-                        <i class="fas fa-map-marked-alt"></i>
+                    <button class="module-tab" data-module="ntb" id="tab-ntb" role="tab" aria-selected="false" aria-controls="panel-ntb">
+                        <i class="fas fa-map-marked-alt" aria-hidden="true"></i>
                         <span>NTB Monitor</span>
                         <small>Regional Coverage</small>
                     </button>

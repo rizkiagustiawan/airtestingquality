@@ -1,4 +1,188 @@
 // -------------------------------------------------------------
+// Constants (replaces magic numbers)
+// -------------------------------------------------------------
+const CONFIG = {
+    POLLING_INTERVAL: 30000,      // 30 seconds
+    LOADING_STEP_MIN: 5,
+    LOADING_STEP_MAX: 20,
+    LOADING_DELAY: 600,
+    TOAST_DURATION: 4000,
+    DEBOUNCE_DELAY: 300,
+    CACHE_TTL: 60000,             // 1 minute cache
+    MAP_CENTER: [-8.82, 116.85],
+    MAP_ZOOM: 11,
+};
+
+// -------------------------------------------------------------
+// DOM Cache (replaces 123x getElementById calls)
+// -------------------------------------------------------------
+const DOM = {};
+
+function cacheDOMElements() {
+    // Loading
+    DOM.loadingOverlay = document.getElementById('loading-overlay');
+    DOM.loaderProgress = document.getElementById('loader-progress');
+
+    // Header
+    DOM.currentTime = document.getElementById('current-time');
+
+    // Monitoring
+    DOM.stationList = document.getElementById('station-list');
+    DOM.ispuStationName = document.getElementById('ispu-station-name');
+    DOM.ispuPanel = document.getElementById('ispu-panel');
+    DOM.ispuCircle = document.getElementById('ispu-circle');
+    DOM.ispuVal = document.getElementById('ispu-val');
+    DOM.ispuCat = document.getElementById('ispu-cat');
+    DOM.ispuCritical = document.getElementById('ispu-critical');
+    DOM.ispuTime = document.getElementById('ispu-time');
+
+    // Map
+    DOM.map = document.getElementById('map');
+    DOM.mapLegend = document.getElementById('map-legend');
+    DOM.legendTitle = document.getElementById('legend-title');
+    DOM.legendContent = document.getElementById('legend-content');
+
+    // Charts
+    DOM.chartPanel = document.getElementById('chart-panel');
+    DOM.chartTitle = document.getElementById('chart-title');
+    DOM.chartClose = document.getElementById('chart-close');
+    DOM.analysisCanvas = document.getElementById('analysisCanvas');
+    DOM.chartCanvas = document.getElementById('chartCanvas');
+
+    // Source info
+    DOM.sourceInfoPanel = document.getElementById('source-info-panel');
+    DOM.sourceInfoTitle = document.getElementById('source-info-title');
+    DOM.sourceInfoContent = document.getElementById('source-info-content');
+
+    // OpenAir
+    DOM.openairType = document.getElementById('openair-type');
+    DOM.openairPollutantGroup = document.getElementById('openair-pollutant-group');
+    DOM.openairPollutant = document.getElementById('openair-pollutant');
+    DOM.openairRun = document.getElementById('openair-run');
+    DOM.openairInfo = document.getElementById('openair-info');
+
+    // AERMOD
+    DOM.aermodSource = document.getElementById('aermod-source');
+    DOM.aermodPollutant = document.getElementById('aermod-pollutant');
+    DOM.aermodWindDir = document.getElementById('aermod-wind-dir');
+    DOM.aermodWindDirVal = document.getElementById('aermod-wind-dir-val');
+    DOM.aermodWindSpeed = document.getElementById('aermod-wind-speed');
+    DOM.aermodWindSpeedVal = document.getElementById('aermod-wind-speed-val');
+    DOM.aermodStability = document.getElementById('aermod-stability');
+    DOM.aermodRun = document.getElementById('aermod-run');
+
+    // CALPUFF
+    DOM.calpuffDuration = document.getElementById('calpuff-duration');
+    DOM.calpuffDurationVal = document.getElementById('calpuff-duration-val');
+    DOM.calpuffPollutant = document.getElementById('calpuff-pollutant');
+    DOM.calpuffRun = document.getElementById('calpuff-run');
+
+    // Forecast
+    DOM.forecastHorizon = document.getElementById('forecast-horizon');
+    DOM.forecastRun = document.getElementById('forecast-run');
+    DOM.forecastSummary = document.getElementById('forecast-summary');
+    DOM.peakIspuVal = document.getElementById('peak-ispu-val');
+    DOM.peakIspuParam = document.getElementById('peak-ispu-param');
+
+    // Reports
+    DOM.reportSummaryFormat = document.getElementById('report-summary-format');
+    DOM.reportSummaryBtn = document.getElementById('report-summary-btn');
+    DOM.reportHistStation = document.getElementById('report-hist-station');
+    DOM.reportHistPollutant = document.getElementById('report-hist-pollutant');
+    DOM.reportHistBtn = document.getElementById('report-hist-btn');
+
+    // NTB Monitoring
+    DOM.ntbIslandFilter = document.getElementById('ntb-island-filter');
+    DOM.ntbPollutant = document.getElementById('ntb-pollutant');
+    DOM.ntbRefresh = document.getElementById('ntb-refresh');
+    DOM.ntbHeatmapBtn = document.getElementById('ntb-heatmap-btn');
+    DOM.ntbSummary = document.getElementById('ntb-summary');
+    DOM.ntbIspuAvg = document.getElementById('ntb-ispu-avg');
+    DOM.ntbLombokIspu = document.getElementById('ntb-lombok-ispu');
+    DOM.ntbSumbawaIspu = document.getElementById('ntb-sumbawa-ispu');
+    DOM.ntbStationList = document.getElementById('ntb-station-list');
+    DOM.ntbAlerts = document.getElementById('ntb-alerts');
+    DOM.ntbAlertsContent = document.getElementById('ntb-alerts-content');
+
+    // ML Analysis
+    DOM.mlToolSelect = document.getElementById('ml-tool-select');
+    DOM.mlForecastControls = document.getElementById('ml-forecast-controls');
+    DOM.mlForecastHorizon = document.getElementById('ml-forecast-horizon');
+    DOM.mlForecastRun = document.getElementById('ml-forecast-run');
+    DOM.mlIspuControls = document.getElementById('ml-ispu-controls');
+    DOM.mlIspuPm10 = document.getElementById('ml-ispu-pm10');
+    DOM.mlIspuPm25 = document.getElementById('ml-ispu-pm25');
+    DOM.mlIspuSo2 = document.getElementById('ml-ispu-so2');
+    DOM.mlIspuNo2 = document.getElementById('ml-ispu-no2');
+    DOM.mlIspuCo = document.getElementById('ml-ispu-co');
+    DOM.mlIspuRun = document.getElementById('ml-ispu-run');
+    DOM.mlHealthControls = document.getElementById('ml-health-controls');
+    DOM.mlHealthPop = document.getElementById('ml-health-pop');
+    DOM.mlHealthRun = document.getElementById('ml-health-run');
+    DOM.mlSourceControls = document.getElementById('ml-source-controls');
+    DOM.mlSourcePollutant = document.getElementById('ml-source-pollutant');
+    DOM.mlSourceRun = document.getElementById('ml-source-run');
+    DOM.mlResults = document.getElementById('ml-results');
+    DOM.mlResultsContent = document.getElementById('ml-results-content');
+
+    // Toast
+    DOM.toastContainer = document.getElementById('toast-container');
+}
+
+// -------------------------------------------------------------
+// Utility: Debounce
+// -------------------------------------------------------------
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// -------------------------------------------------------------
+// Utility: LocalStorage Cache
+// -------------------------------------------------------------
+const Cache = {
+    get(key) {
+        try {
+            const item = localStorage.getItem(`airq_${key}`);
+            if (!item) return null;
+            const { value, expiry } = JSON.parse(item);
+            if (Date.now() > expiry) {
+                localStorage.removeItem(`airq_${key}`);
+                return null;
+            }
+            return value;
+        } catch {
+            return null;
+        }
+    },
+
+    set(key, value, ttl = CONFIG.CACHE_TTL) {
+        try {
+            const item = {
+                value,
+                expiry: Date.now() + ttl,
+            };
+            localStorage.setItem(`airq_${key}`, JSON.stringify(item));
+        } catch (e) {
+            console.warn('Cache write failed:', e);
+        }
+    },
+
+    clear() {
+        Object.keys(localStorage)
+            .filter(key => key.startsWith('airq_'))
+            .forEach(key => localStorage.removeItem(key));
+    }
+};
+
+// -------------------------------------------------------------
 // Web GIS State Management
 // -------------------------------------------------------------
 let state = {
@@ -11,7 +195,8 @@ let state = {
         monitoring: null,
         sources: null,
         aermod: null,
-        calpuff: null
+        calpuff: null,
+        ntbHeatmap: null
     }
 };
 
@@ -28,54 +213,72 @@ function getDashboardDataUrl() {
 // Initialization & Map Setup
 // -------------------------------------------------------------
 function initApp() {
+    // Cache all DOM elements first
+    cacheDOMElements();
+
     initMap();
     setupEventListeners();
 
-    // Premium loading sequence
+    // Loading sequence with cached DOM
     let progress = 0;
-    const progressEl = document.getElementById('loader-progress');
     const interval = setInterval(() => {
-        progress += Math.random() * 20 + 5;
+        progress += Math.random() * CONFIG.LOADING_STEP_MAX + CONFIG.LOADING_STEP_MIN;
         if (progress > 100) progress = 100;
-        progressEl.style.width = `${progress}%`;
+        DOM.loaderProgress.style.width = `${progress}%`;
 
         if (progress === 100) {
             clearInterval(interval);
             setTimeout(() => {
-                document.getElementById('loading-overlay').classList.add('hidden');
+                DOM.loadingOverlay.classList.add('hidden');
                 fetchInitialData().then(() => {
                     startLivePolling();
                 });
-            }, 600);
+            }, CONFIG.LOADING_DELAY);
         }
     }, 150);
 }
 
 function startLivePolling() {
-    // Refresh data from backend to avoid synthetic UI-only fluctuations.
-    setInterval(async () => {
+    // Debounced polling to prevent rapid API calls
+    const debouncedPoll = debounce(async () => {
         try {
+            // Check cache first
+            const cached = Cache.get('dashboard');
+            if (cached) {
+                state.dashboardData = cached;
+                if (state.activeModule === 'monitoring') {
+                    renderMonitoringList();
+                    renderMonitoringMarkers();
+                }
+                return;
+            }
+
             const dashRes = await fetch(getDashboardDataUrl());
             const dashData = await dashRes.json();
             if (dashData.status !== 'success') return;
             state.dashboardData = dashData.data;
 
+            // Cache the data
+            Cache.set('dashboard', dashData.data, CONFIG.CACHE_TTL);
+
             if (state.activeModule === 'monitoring') {
                 renderMonitoringList();
                 renderMonitoringMarkers();
-                const activeTitle = document.getElementById('ispu-station-name').textContent;
+                const activeTitle = DOM.ispuStationName.textContent;
                 const openSt = state.dashboardData.find(s => s.location === activeTitle);
                 if (openSt) showMonitoringDetails(openSt);
             }
         } catch (err) {
             console.error("Live polling failed", err);
         }
-    }, 30000);
+    }, CONFIG.DEBOUNCE_DELAY);
+
+    setInterval(debouncedPoll, CONFIG.POLLING_INTERVAL);
 }
 
 function initMap() {
     // Center to PT AMMAN Mineral NTB location
-    map = L.map('map').setView([-8.82, 116.85], 11);
+    map = L.map('map').setView(CONFIG.MAP_CENTER, CONFIG.MAP_ZOOM);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
@@ -84,8 +287,8 @@ function initMap() {
     // Initialize layer groups
     state.layers.monitoring = L.layerGroup().addTo(map);
     state.layers.sources = L.layerGroup().addTo(map);
-    state.layers.aermod = L.layerGroup(); // Not added initially
-    state.layers.calpuff = L.layerGroup(); // Not added initially
+    state.layers.aermod = L.layerGroup();
+    state.layers.calpuff = L.layerGroup();
 
     // Add Layer Control
     L.control.layers(
@@ -101,7 +304,7 @@ function initMap() {
 
     // Time updater
     setInterval(() => {
-        document.getElementById('current-time').textContent = new Date().toLocaleString('en-US', {
+        DOM.currentTime.textContent = new Date().toLocaleString('en-US', {
             weekday: 'short', month: 'short', day: 'numeric',
             hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
@@ -121,46 +324,44 @@ function setupEventListeners() {
     });
 
     // Range Inputs text sync
-    document.getElementById('aermod-wind-dir').addEventListener('input', (e) => {
-        document.getElementById('aermod-wind-dir-val').textContent = `${e.target.value} deg`;
+    DOM.aermodWindDir.addEventListener('input', (e) => {
+        DOM.aermodWindDirVal.textContent = `${e.target.value} deg`;
     });
-    document.getElementById('aermod-wind-speed').addEventListener('input', (e) => {
-        document.getElementById('aermod-wind-speed-val').textContent = `${e.target.value} m/s`;
+    DOM.aermodWindSpeed.addEventListener('input', (e) => {
+        DOM.aermodWindSpeedVal.textContent = `${e.target.value} m/s`;
     });
-    document.getElementById('calpuff-duration').addEventListener('input', (e) => {
-        document.getElementById('calpuff-duration-val').textContent = `${e.target.value} hrs`;
-    });
-
-    // OpenAir Type Toggle (show/hide pollutant)
-    document.getElementById('openair-type').addEventListener('change', (e) => {
-        const type = e.target.value;
-        const pGroup = document.getElementById('openair-pollutant-group');
-        pGroup.style.display = (type === 'windrose') ? 'none' : 'block';
+    DOM.calpuffDuration.addEventListener('input', (e) => {
+        DOM.calpuffDurationVal.textContent = `${e.target.value} hrs`;
     });
 
-    // Run Buttons
-    document.getElementById('openair-run').addEventListener('click', runOpenAir);
-    document.getElementById('aermod-run').addEventListener('click', runAERMOD);
-    document.getElementById('calpuff-run').addEventListener('click', runCALPUFF);
-    document.getElementById('forecast-run').addEventListener('click', runForecast);
-    document.getElementById('report-summary-btn').addEventListener('click', downloadSummaryReport);
-    document.getElementById('report-hist-btn').addEventListener('click', downloadHistoricalReport);
+    // OpenAir Type Toggle
+    DOM.openairType.addEventListener('change', (e) => {
+        DOM.openairPollutantGroup.style.display = (e.target.value === 'windrose') ? 'none' : 'block';
+    });
+
+    // Run Buttons (debounced to prevent rapid clicks)
+    DOM.openairRun.addEventListener('click', debounce(runOpenAir, CONFIG.DEBOUNCE_DELAY));
+    DOM.aermodRun.addEventListener('click', debounce(runAERMOD, CONFIG.DEBOUNCE_DELAY));
+    DOM.calpuffRun.addEventListener('click', debounce(runCALPUFF, CONFIG.DEBOUNCE_DELAY));
+    DOM.forecastRun.addEventListener('click', debounce(runForecast, CONFIG.DEBOUNCE_DELAY));
+    DOM.reportSummaryBtn.addEventListener('click', debounce(downloadSummaryReport, CONFIG.DEBOUNCE_DELAY));
+    DOM.reportHistBtn.addEventListener('click', debounce(downloadHistoricalReport, CONFIG.DEBOUNCE_DELAY));
 
     // NTB Monitoring
-    document.getElementById('ntb-refresh').addEventListener('click', loadNTBData);
-    document.getElementById('ntb-heatmap-btn').addEventListener('click', showNTBHeatmap);
-    document.getElementById('ntb-island-filter').addEventListener('change', filterNTBStations);
+    DOM.ntbRefresh.addEventListener('click', debounce(loadNTBData, CONFIG.DEBOUNCE_DELAY));
+    DOM.ntbHeatmapBtn.addEventListener('click', debounce(showNTBHeatmap, CONFIG.DEBOUNCE_DELAY));
+    DOM.ntbIslandFilter.addEventListener('change', filterNTBStations);
 
     // ML Analysis
-    document.getElementById('ml-tool-select').addEventListener('change', switchMLTool);
-    document.getElementById('ml-forecast-run').addEventListener('click', runMLForecast);
-    document.getElementById('ml-ispu-run').addEventListener('click', runMLISPU);
-    document.getElementById('ml-health-run').addEventListener('click', runMLHealth);
-    document.getElementById('ml-source-run').addEventListener('click', runMLSource);
+    DOM.mlToolSelect.addEventListener('change', switchMLTool);
+    DOM.mlForecastRun.addEventListener('click', debounce(runMLForecast, CONFIG.DEBOUNCE_DELAY));
+    DOM.mlIspuRun.addEventListener('click', debounce(runMLISPU, CONFIG.DEBOUNCE_DELAY));
+    DOM.mlHealthRun.addEventListener('click', debounce(runMLHealth, CONFIG.DEBOUNCE_DELAY));
+    DOM.mlSourceRun.addEventListener('click', debounce(runMLSource, CONFIG.DEBOUNCE_DELAY));
 
     // Panel Closers
-    document.getElementById('chart-close').addEventListener('click', () => {
-        document.getElementById('chart-panel').style.display = 'none';
+    DOM.chartClose.addEventListener('click', () => {
+        DOM.chartPanel.style.display = 'none';
     });
 }
 
@@ -168,53 +369,63 @@ function switchModule(moduleName) {
     state.activeModule = moduleName;
 
     // Update tabs UI
-    document.querySelectorAll('.module-tab').forEach(tab => tab.classList.remove('active'));
-    document.getElementById(`tab-${moduleName}`).classList.add('active');
+    document.querySelectorAll('.module-tab').forEach(tab => {
+        tab.classList.remove('active');
+        tab.setAttribute('aria-selected', 'false');
+    });
+    const activeTab = document.getElementById(`tab-${moduleName}`);
+    activeTab.classList.add('active');
+    activeTab.setAttribute('aria-selected', 'true');
 
     // Update panels UI
-    document.querySelectorAll('.module-panel').forEach(panel => panel.classList.remove('active'));
-    document.getElementById(`panel-${moduleName}`).classList.add('active');
+    document.querySelectorAll('.module-panel').forEach(panel => {
+        panel.classList.remove('active');
+        panel.setAttribute('aria-hidden', 'true');
+    });
+    const activePanel = document.getElementById(`panel-${moduleName}`);
+    activePanel.classList.add('active');
+    activePanel.setAttribute('aria-hidden', 'false');
 
     // Layer management based on module
     if (moduleName === 'monitoring') {
         if (!map.hasLayer(state.layers.monitoring)) map.addLayer(state.layers.monitoring);
         if (map.hasLayer(state.layers.aermod)) map.removeLayer(state.layers.aermod);
         if (map.hasLayer(state.layers.calpuff)) map.removeLayer(state.layers.calpuff);
-        document.getElementById('map-legend').style.display = 'none';
+        DOM.mapLegend.style.display = 'none';
     }
     else if (moduleName === 'aermod') {
         if (!map.hasLayer(state.layers.aermod)) map.addLayer(state.layers.aermod);
         if (map.hasLayer(state.layers.calpuff)) map.removeLayer(state.layers.calpuff);
-        document.getElementById('ispu-panel').style.display = 'none';
-        document.getElementById('chart-panel').style.display = 'none';
+        DOM.ispuPanel.style.display = 'none';
+        DOM.chartPanel.style.display = 'none';
     }
     else if (moduleName === 'calpuff') {
         if (!map.hasLayer(state.layers.calpuff)) map.addLayer(state.layers.calpuff);
         if (map.hasLayer(state.layers.aermod)) map.removeLayer(state.layers.aermod);
-        document.getElementById('ispu-panel').style.display = 'none';
-        document.getElementById('chart-panel').style.display = 'none';
+        DOM.ispuPanel.style.display = 'none';
+        DOM.chartPanel.style.display = 'none';
     }
     else if (moduleName === 'openair') {
-        document.getElementById('ispu-panel').style.display = 'none';
-        document.getElementById('map-legend').style.display = 'none';
+        DOM.ispuPanel.style.display = 'none';
+        DOM.mapLegend.style.display = 'none';
     }
     else if (moduleName === 'forecast') {
-        document.getElementById('ispu-panel').style.display = 'none';
-        document.getElementById('map-legend').style.display = 'none';
+        DOM.ispuPanel.style.display = 'none';
+        DOM.mapLegend.style.display = 'none';
     }
     else if (moduleName === 'reports') {
-        document.getElementById('ispu-panel').style.display = 'none';
-        document.getElementById('map-legend').style.display = 'none';
+        DOM.ispuPanel.style.display = 'none';
+        DOM.mapLegend.style.display = 'none';
         populateReportStations();
     }
     else if (moduleName === 'ntb') {
-        document.getElementById('ispu-panel').style.display = 'none';
-        document.getElementById('map-legend').style.display = 'none';
+        DOM.ispuPanel.style.display = 'none';
+        DOM.mapLegend.style.display = 'none';
         loadNTBData();
     }
     else if (moduleName === 'ml') {
-        document.getElementById('ispu-panel').style.display = 'none';
-        document.getElementById('map-legend').style.display = 'none';
+        DOM.ispuPanel.style.display = 'none';
+        DOM.mapLegend.style.display = 'none';
     }
 }
 
