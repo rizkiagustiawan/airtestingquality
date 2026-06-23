@@ -1,11 +1,14 @@
-# Air Quality Web GIS (Environmental Engineering Portfolio)
+# NTB Air Vision - Environmental Engineering Portfolio
 
 [![CI](https://github.com/rizkiagustiawan/airtestingquality/actions/workflows/ci.yml/badge.svg)](https://github.com/rizkiagustiawan/airtestingquality/actions/workflows/ci.yml)
 [![Secret Scan](https://github.com/rizkiagustiawan/airtestingquality/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/rizkiagustiawan/airtestingquality/actions/workflows/secret-scan.yml)
 [![Vercel](https://img.shields.io/badge/deploy-Vercel-black?logo=vercel)](https://vercel.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Rizki%20Agustiawan-0A66C2?logo=linkedin)](https://linkedin.com/in/rizkiagustiawan)
 
-AirQ Web GIS is a production-minded environmental engineering portfolio project that brings together air quality monitoring, QA/QC, ISPU calculation, compliance-oriented screening, meteorological analytics, and simplified atmospheric dispersion visualization in a single system. All machine learning modules are based on **200+ peer-reviewed research papers** and verified against scientific formulas.
+**NTB Air Vision** is a production-minded environmental engineering portfolio project for real-time air quality monitoring across Nusa Tenggara Barat (NTB). Combines ML-powered analytics, ISPU calculation, WHO AirQ+ health assessment, and spatial interpolation in a single system.
+
+> Coded by [Rizki Agustiawan](https://linkedin.com/in/rizkiagustiawan)
 
 ## At a Glance
 

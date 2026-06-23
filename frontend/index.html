@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AirQ WebGIS - Air Quality Monitoring</title>
+    <title>NTB Air Vision - Environmental Monitoring</title>
     <meta name="description"
-        content="Integrated Web GIS for air quality monitoring, OpenAir-style analytics, AERMOD-style dispersion, and CALPUFF-style transport.">
+        content="NTB Air Vision: Real-time air quality monitoring, ML-powered analytics, and environmental intelligence for Nusa Tenggara Barat.">
     <meta name="theme-color" content="#06090f">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -34,7 +34,7 @@
         <header class="top-bar" role="banner">
             <div class="brand">
                 <i class="fas fa-wind brand-icon" aria-hidden="true"></i>
-                <h1>AirQ <span class="brand-accent">WebGIS</span></h1>
+                <h1>NTB <span class="brand-accent">Air Vision</span></h1>
                 <span class="brand-sub">Environmental Engineering Portfolio</span>
             </div>
             <div class="top-bar-right">
@@ -42,6 +42,9 @@
                     <span class="dot pulse" aria-hidden="true"></span> Live System
                 </div>
                 <div class="top-bar-time" id="current-time" aria-live="polite" aria-label="Current time">--</div>
+                <a href="https://linkedin.com/in/rizkiagustiawan" target="_blank" rel="noopener noreferrer" class="linkedin-link" aria-label="LinkedIn Profile">
+                    <i class="fab fa-linkedin"></i> Rizki Agustiawan
+                </a>
             </div>
         </header>
 
@@ -432,13 +435,26 @@
                 </div>
             </main>
         </div>
+
+        <!-- Footer -->
+        <footer class="app-footer" role="contentinfo">
+            <div class="footer-content">
+                <span class="footer-credit">
+                    Coded by <a href="https://linkedin.com/in/rizkiagustiawan" target="_blank" rel="noopener noreferrer">Rizki Agustiawan</a>
+                </span>
+                <span class="footer-separator">·</span>
+                <span class="footer-tech">FastAPI + Leaflet + Chart.js</span>
+                <span class="footer-separator">·</span>
+                <span class="footer-year">2026</span>
+            </div>
+        </footer>
     </div>
 
     <div id="toast-container" class="toast-container"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
 </body>
 
 </html>
