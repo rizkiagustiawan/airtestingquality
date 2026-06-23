@@ -427,6 +427,11 @@ function switchModule(moduleName) {
         DOM.ispuPanel.style.display = 'none';
         DOM.mapLegend.style.display = 'none';
     }
+    else if (moduleName === 'satellite') {
+        DOM.ispuPanel.style.display = 'none';
+        DOM.mapLegend.style.display = 'none';
+        setupSatelliteListeners();
+    }
 }
 
 // -------------------------------------------------------------
@@ -1347,6 +1352,129 @@ async function runMLSource() {
         console.error('ML Source failed:', err);
         showToast('Error', 'Analysis failed', 'error');
     }
+}
+
+// -------------------------------------------------------------
+// Satellite Data Monitoring
+// -------------------------------------------------------------
+function setupSatelliteListeners() {
+    const fetchBtn = document.getElementById('satellite-fetch');
+    if (fetchBtn) {
+        fetchBtn.addEventListener('click', debounce(fetchSatelliteData, CONFIG.DEBOUNCE_DELAY));
+    }
+}
+
+async function fetchSatelliteData() {
+    const type = document.getElementById('satellite-type').value;
+    const station = document.getElementById('satellite-station').value;
+
+    try {
+        showToast('Fetching', 'Loading satellite data...', 'info');
+
+        if (type === 'summary') {
+            await fetchSatelliteSummary();
+        } else if (type === 'sentinel5p') {
+            await fetchSatelliteSentinel5P(station);
+        } else if (type === 'nasa-power') {
+            await fetchSatelliteNASAPower(station);
+        }
+    } catch (err) {
+        console.error('Satellite fetch failed:', err);
+        showToast('Error', 'Failed to fetch satellite data', 'error');
+    }
+}
+
+async function fetchSatelliteSummary() {
+    const res = await fetch(`${API_BASE}/api/satellite/ntb-summary`);
+    const data = await res.json();
+
+    // Show NASA POWER summary
+    const nasaDiv = document.getElementById('satellite-nasa-summary');
+    nasaDiv.style.display = 'block';
+
+    // Find first station with NASA data
+    const stations = data.stations || {};
+    const firstStation = Object.values(stations)[0];
+    const nasaData = firstStation?.nasa_power?.summary || {};
+
+    document.getElementById('sat-temp').textContent = `${nasaData.temperature_mean || '--'}°C`;
+    document.getElementById('sat-humidity').textContent = `${nasaData.humidity_mean || '--'}%`;
+    document.getElementById('sat-wind').textContent = `${nasaData.wind_speed_mean || '--'} m/s`;
+    document.getElementById('sat-solar').textContent = `${nasaData.solar_radiation_mean || '--'}`;
+
+    // Show Sentinel-5P summary
+    const s5pDiv = document.getElementById('satellite-s5p-summary');
+    s5pDiv.style.display = 'block';
+
+    const s5pData = firstStation?.sentinel5p?.estimated_ground_level || {};
+    document.getElementById('sat-s5p-content').innerHTML = `
+        <div style="font-size:0.85rem">
+            <p><strong>NO2:</strong> ${s5pData.no2_ugm3 || 'N/A'} µg/m³</p>
+            <p><strong>CO:</strong> ${s5pData.co_ugm3 || 'N/A'} µg/m³</p>
+            <p><strong>SO2:</strong> ${s5pData.so2_ugm3 || 'N/A'} µg/m³</p>
+            <p><strong>O3:</strong> ${s5pData.o3_ugm3 || 'N/A'} µg/m³</p>
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:8px">
+            Source: Sentinel-5P via Google Earth Engine
+        </div>
+    `;
+
+    showToast('Success', 'Satellite data loaded', 'success');
+}
+
+async function fetchSatelliteSentinel5P(stationId) {
+    const res = await fetch(`${API_BASE}/api/satellite/station/${stationId}`);
+    const data = await res.json();
+
+    const resultsDiv = document.getElementById('satellite-results');
+    resultsDiv.style.display = 'block';
+
+    const s5p = data.sentinel5p || {};
+    const ground = s5p.estimated_ground_level || {};
+
+    document.getElementById('satellite-results-content').innerHTML = `
+        <div class="ml-result-card">
+            <h5>Sentinel-5P - ${data.station_name || stationId}</h5>
+            <div style="font-size:0.85rem">
+                <p><strong>NO2:</strong> ${ground.no2_ugm3 || 'N/A'} µg/m³</p>
+                <p><strong>CO:</strong> ${ground.co_ugm3 || 'N/A'} µg/m³</p>
+                <p><strong>SO2:</strong> ${ground.so2_ugm3 || 'N/A'} µg/m³</p>
+                <p><strong>O3:</strong> ${ground.o3_ugm3 || 'N/A'} µg/m³</p>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">
+                Resolution: 7km | Period: 30 days
+            </div>
+        </div>
+    `;
+
+    showToast('Success', 'Sentinel-5P data loaded', 'success');
+}
+
+async function fetchSatelliteNASAPower(stationId) {
+    const res = await fetch(`${API_BASE}/api/satellite/station/${stationId}`);
+    const data = await res.json();
+
+    const resultsDiv = document.getElementById('satellite-results');
+    resultsDiv.style.display = 'block';
+
+    const nasa = data.nasa_power || {};
+    const summary = nasa.summary || {};
+
+    document.getElementById('satellite-results-content').innerHTML = `
+        <div class="ml-result-card">
+            <h5>NASA POWER - ${data.station_name || stationId}</h5>
+            <div style="font-size:0.85rem">
+                <p><strong>Temperature:</strong> ${summary.temperature_mean || '--'}°C</p>
+                <p><strong>Humidity:</strong> ${summary.humidity_mean || '--'}%</p>
+                <p><strong>Wind Speed:</strong> ${summary.wind_speed_mean || '--'} m/s</p>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">
+                Source: NASA POWER API (Free)
+            </div>
+        </div>
+    `;
+
+    showToast('Success', 'NASA POWER data loaded', 'success');
 }
 
 // -------------------------------------------------------------

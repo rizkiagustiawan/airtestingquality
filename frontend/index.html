@@ -87,9 +87,14 @@
                         <small>Regional Coverage</small>
                     </button>
                     <button class="module-tab" data-module="ml" id="tab-ml">
-                        <i class="fas fa-brain"></i>
+                        <i class="fas fa-brain" aria-hidden="true"></i>
                         <span>ML Analysis</span>
                         <small>AI-Powered Tools</small>
+                    </button>
+                    <button class="module-tab" data-module="satellite" id="tab-satellite">
+                        <i class="fas fa-satellite" aria-hidden="true"></i>
+                        <span>Satellite</span>
+                        <small>Sentinel-5P & NASA</small>
                     </button>
                 </nav>
 
@@ -396,6 +401,75 @@
                     <div class="info-box">
                         <p><strong>Scientific ML Tools</strong></p>
                         <p>All tools based on peer-reviewed papers (200+). Ensemble SVM+RF+XGBoost for classification, Kalman filter for forecasting, WHO AirQ+ for health assessment.</p>
+                    </div>
+                </div>
+
+                <!-- Satellite Data Panel -->
+                <div class="module-panel" id="panel-satellite">
+                    <h3 class="panel-title"><i class="fas fa-satellite"></i> Satellite Monitoring</h3>
+
+                    <div class="info-box">
+                        <p><strong>Data Sources</strong></p>
+                        <p><i class="fas fa-check-circle" style="color:var(--accent-green)"></i> Sentinel-5P (ESA) - NO2, CO, SO2, O3</p>
+                        <p><i class="fas fa-check-circle" style="color:var(--accent-green)"></i> NASA POWER - Meteorological data</p>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Data Type</label>
+                        <select id="satellite-type" class="control-select">
+                            <option value="summary">NTB Summary (All Stations)</option>
+                            <option value="sentinel5p">Sentinel-5P (Air Quality)</option>
+                            <option value="nasa-power">NASA POWER (Meteorology)</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Station</label>
+                        <select id="satellite-station" class="control-select">
+                            <option value="ntb-01">Mataram Central</option>
+                            <option value="ntb-07">AMNT Mining</option>
+                            <option value="ntb-08">Sumbawa Besar</option>
+                            <option value="ntb-10">Bima Regional</option>
+                        </select>
+                    </div>
+
+                    <button class="control-btn" id="satellite-fetch"><i class="fas fa-satellite"></i> Fetch Satellite Data</button>
+
+                    <!-- Satellite Results -->
+                    <div id="satellite-results" class="info-box" style="display:none">
+                        <div id="satellite-results-content"></div>
+                    </div>
+
+                    <div id="satellite-nasa-summary" class="info-box" style="display:none">
+                        <h4><i class="fas fa-cloud-sun"></i> NASA POWER Meteorology</h4>
+                        <div class="regional-grid">
+                            <div class="regional-card">
+                                <div class="region-name">Temperature</div>
+                                <div class="region-ispu" id="sat-temp">--</div>
+                            </div>
+                            <div class="regional-card">
+                                <div class="region-name">Humidity</div>
+                                <div class="region-ispu" id="sat-humidity">--</div>
+                            </div>
+                            <div class="regional-card">
+                                <div class="region-name">Wind Speed</div>
+                                <div class="region-ispu" id="sat-wind">--</div>
+                            </div>
+                            <div class="regional-card">
+                                <div class="region-name">Solar</div>
+                                <div class="region-ispu" id="sat-solar">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="satellite-s5p-summary" class="info-box" style="display:none">
+                        <h4><i class="fas fa-globe-asia"></i> Sentinel-5P Air Quality</h4>
+                        <div id="sat-s5p-content"></div>
+                    </div>
+
+                    <div class="info-box">
+                        <p><strong>Satellite Data</strong></p>
+                        <p>Sentinel-5P provides atmospheric composition data at 7km resolution. NASA POWER provides meteorological parameters for dispersion modeling.</p>
                     </div>
                 </div>
             </aside>
